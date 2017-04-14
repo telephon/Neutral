@@ -51,11 +51,15 @@ Fexpr : Neutral {
 
 	// intensional equality
 
-	== { arg obj;
-		^this.compareObject(obj, [\pr_receiver])
+	== { |that|
+		^this.compareObject(that, [\pr_receiver])
 	}
 
-	hash { arg obj;
+	!= { |that|
+		^not(this == that)
+	}
+
+	hash {
 		^this.instVarHash([\pr_receiver])
 	}
 
@@ -104,11 +108,11 @@ OpFexpr : Fexpr {
 		^value.performList(this.pr_selector, arguments)
 	}
 
-	== { arg obj;
+	== { |obj|
 		^this.compareObject(obj, [\pr_receiver, \pr_selector, \pr_arguments])
 	}
 
-	hash { arg obj;
+	hash {
 		^this.instVarHash([\pr_receiver, \pr_selector, \pr_arguments])
 	}
 
