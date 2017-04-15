@@ -87,3 +87,20 @@ Halo2 : Neutral {
 	}
 
 }
+
+
+/*
+
+and finally ...
+
+*/
+
+Idiot : Fexpr {
+
+	reverseComposeBinaryOp { |selector, obj|
+		^this
+	}
+	doesNotUnderstand { ^this }
+}
+
+
