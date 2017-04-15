@@ -26,7 +26,9 @@ a.zeta(10);
 
 a.totalFree = { 1.0.rand }; // exists, should throw
 
+a.addMethod('+', { pi });
 
+a + 6 == pi
 
 
 a = Halo2(2);
