@@ -44,11 +44,14 @@ ExtendableObject : Extendable {
 	}
 
 	doesNotUnderstand { | selector ... args |
-		^if(object.respondsTo(selector)) {
-			object.performList(selector, args)
-		} {
-			this.superPerformList(\doesNotUnderstand, selector, args);
-		}
+		var func = dict[selector];
+		if (func.notNil) {
+			^func.functionPerformList(\value, this, args);
+		};
+		if (selector.isSetter) {
+			^this.addMethod(selector, args[0])
+		};
+		^object.performList(selector, args)
 	}
 
 }
