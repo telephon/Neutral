@@ -68,6 +68,17 @@ a = Idem(8);
 b = a.blend(0.4, 0.2);
 b.call
 
+// immute
+
+x = [1, 2, 3];
+a = Immute(x);
+b = a.put(1, 1000);
+b.call
+x // still [1, 2, 3]
+
+
+
+
 a = Fexpr(8);
 b = a.blend(0.4, 0.2);
 b.call
@@ -90,5 +101,8 @@ Fexpr(1) + Idem(2)
 
 a = Fexpr(1) + Idem(2);
 a.call
+
+
+
 
 

@@ -223,6 +223,22 @@ Idem : Fexpr {
 
 /*
 
+An Idem that only operates on copies
+
+*/
+
+Immute : Idem {
+
+	pr_receiver {
+		^super.pr_receiver.copy
+	}
+
+}
+
+
+
+/*
+
 one method that is needed univrsally
 
 */
