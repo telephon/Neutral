@@ -39,10 +39,10 @@ Fexpr : Neutral {
 
 	*opClass { ^OpFexpr }
 
-	call {
+	call { |caller|
 		// todo: build in the recursion catching from Maybe
 		// calling all instance variables via the external interface offers flexibility for subclasses
-		^this.pr_receiver.call
+		^this.pr_receiver.call(caller)
 	}
 
 	doesNotUnderstand { |selector ... args|
@@ -103,8 +103,8 @@ OpFexpr : Fexpr {
 	call {
 		// consider an optimized (thunked) version: the arguments might be called repeatedly.
 		// TODO: better error message for runtime errors?
-		var value = this.pr_receiver.call;
-		var arguments = this.pr_arguments.collect(_.call);
+		var value = this.pr_receiver.call(this);
+		var arguments = this.pr_arguments.collect(_.call(this));
 		^value.performList(this.pr_selector, arguments)
 	}
 
