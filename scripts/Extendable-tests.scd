@@ -1,11 +1,18 @@
 
-
+// Extendable
 
 a = Extendable.new;
 
 a.pingolino = { |self, x, y, z| [x, y, z].postln; 999 };
 
-a.pingolino(1, 2, 3)
+a.pingolino(1, 2, 3) // 999
+
+a.pongiloni = { |self, x, y, z| x + y - z };
+
+a.pingolino = { |self, x, y, z| self.pongiloni(x, y, z) }; // forward
+
+a.pingolino(10, 2, 3) // 9
+
 
 a.totalFree = { 1.0.rand } // exists, should throw
 
@@ -14,22 +21,35 @@ a.totalFree = { 1.0.rand } // exists, should throw
 
 
 
+// ExtendableObject
+
 a = ExtendableObject(8);
 
-a + 9;
+a + 9; // 17
 
-a.zeta = { |self, y = 1| self.source * y };
+a.zeta = { |self, y = 1| self.object * y };
 
-a.zeta
+a.zeta // 8
 
-a.zeta(10);
+a.zeta(10); // 80
 
 a.totalFree = { 1.0.rand }; // exists, should throw
 
-a.addMethod('+', { pi });
+a.addMethod('+', { pi }); // override
 
-a + 6 == pi
+a + 6 == pi // yes
 
+a.addMethod('+', nil); // remove
+
+a + 6 == 14 // yes
+
+
+
+
+
+
+
+// Halo2
 
 a = Halo2(2);
 
