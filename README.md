@@ -5,6 +5,6 @@ The `Neutral` class should some day be a built in class, this implementation is 
 
 Possible name alternatives for classes once included in sclang could be:
 
-`AbstractObject` (now Neutral)
-`Lazy` (now Fexpr)
+- `AbstractObject` (now Neutral)
+- `Lazy` (now Fexpr)
 
