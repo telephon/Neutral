@@ -4,9 +4,11 @@
 
 This combines some ideas by Alan Kay (objects as gneric interpreters), James McCartney (abstract functions) and John N. Shutt (vau calculus).
 
+In Smalltalk-like OOP, expressions primarily evaluate to their respective objects only. From that level on, proper evaluation and application is the responsibilty of each object that receives a message. This library experiments with receivers that build calculation structures rather than performing them.
+
       ***
 
-The name FEXPR (functional expression) is chosen for historical reasons, it could be changed to be more idiomatic
+The name FEXPR (functional expression) is chosen for historical reasons, it could be changed to something more idiomatic.
 
 There is one *special method* : "call". It does what is normally referred to as call, evaluation, reduction, etc.
 
@@ -128,7 +130,8 @@ OpFexpr : Fexpr {
 
 /*
 
-Fexpr with "static" checking: you can't accidentally build statically invalid expressions
+Fexpr with "static" checking: you can't accidentally build expressions
+that are statically invalid (where the receiver doesn't implement the selector)
 
 */
 
@@ -162,7 +165,8 @@ StaticOpFexpr : OpFexpr {
 
 /*
 
-This is perhaps more useful as a "real" fexpr, that also integrates functions.
+This is perhaps more useful as a "real" fexpr, that behaves more like a function.
+It evaluates ("calls") its operands when evaluated.
 
 */
 
@@ -239,7 +243,7 @@ Immute : Idem {
 
 /*
 
-one method that is needed univrsally
+one method that is needed universally
 
 */
 
