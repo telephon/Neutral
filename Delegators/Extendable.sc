@@ -3,6 +3,7 @@
 
 Extendable : Neutral {
 	var <>pr_method_dict;
+	var pr_responding_selectors;
 
 	*new { |dict|
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
@@ -10,14 +11,13 @@ Extendable : Neutral {
 
 	addMethod { |selector, function|
 		selector = selector.asGetter;
-		/*
-		// this would have to call overriddenMethodSelectors but that is relatively inefficient.
-		// better make a safe subclass?
-		if(this.respondsTo(selector)) {
+		if(pr_responding_selectors.isNil) {
+			pr_responding_selectors = this.class.overriddenMethodSelectors.as(IdentitySet);
+		};
+		if(this.respondsTo(selector) and: { pr_responding_selectors.includes(selector).not }) {
 			Error(selector.asCompileString
 				+ "exists a method name for the Extendable object, so you can't use it as pseudo-method.").throw;
 		};
-		*/
 		this.pr_method_dict[selector] = function;
 	}
 
