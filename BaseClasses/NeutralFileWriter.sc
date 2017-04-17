@@ -6,8 +6,8 @@ NeutralizeObject {
 	}
 
 
-	*write { |class, excluding, path|
-		var string = this.generateClassFileString(class, excluding);
+	*write { |class, excluding, path, ellipsisArgs|
+		var string = this.generateClassFileString(class, excluding, ellipsisArgs);
 		var existing, extDir;
 
 
@@ -164,8 +164,63 @@ NeutralizeObject {
 	}
 
 
-	*generateClassFileString { |class, excluding ([])|
-		var str, exclude, startTime, overriddenMethodSelectors = [];
+	*printRespondingMethodsWithArgs { |stream, class, exclude|
+		var overriddenMethodSelectors = [];
+		// override all methods of this and all superclasses
+		class.respondingMethods.do { |method|
+			var selector = method.name;
+			var lastIndex = method.argNames.lastIndex - 1;
+			if(exclude.includes(selector).not) {
+				stream << Char.tab;
+				stream << selector;
+				stream << " { ";
+				if(method.argNames.size > 1) {
+					stream << "| ";
+					method.argNames.drop(1).do { |x, i|
+						var defaultArg = method.prototypeFrame.at(i);
+						//stream << "| " x << " |";
+						stream << x;
+						if(defaultArg.notNil) {
+							stream << " = " <<< x
+						};
+						if(i == lastIndex) { stream << " |" } { stream << ", " };
+
+					};
+					stream << "\n\t\t^this.doesNotUnderstand(thisMethod.name, %)\n"
+					.format(method.argNames.drop(1).join(", "));
+				} {
+
+					stream << "\n\t\t^this.doesNotUnderstand(thisMethod.name)"
+				};
+				stream << "\n\t}\n\n";
+				overriddenMethodSelectors = overriddenMethodSelectors.add(selector);
+			}
+		};
+
+		stream << "\n\n\t" << "*overriddenMethodSelectors {\n\t\t^#" <<< overriddenMethodSelectors  << "\n\t}\n\n";
+	}
+
+	*printRespondingMethods { |stream, class, exclude|
+		var overriddenMethodSelectors = [];
+		// override all methods of this and all superclasses
+		class.respondingMethods.do { |method|
+			var selector = method.name;
+			if(exclude.includes(selector).not) {
+				stream << Char.tab;
+				stream << selector;
+				stream << " { |... args|";
+				stream << "\n\t\t^this.doesNotUnderstand(thisMethod.name, *args)\n";
+				stream << "\n\t}\n\n";
+				overriddenMethodSelectors = overriddenMethodSelectors.add(selector);
+			}
+		};
+
+		stream << "\n\n\t" << "*overriddenMethodSelectors {\n\t\t^#" <<< overriddenMethodSelectors  << "\n\t}\n\n";
+	}
+
+
+	*generateClassFileString { |class, excluding ([]), ellipsisArgs = (true)|
+		var stream, exclude, startTime;
 		startTime = Main.elapsedTime;
 
 		exclude = excluding.as(IdentitySet);
@@ -178,48 +233,21 @@ NeutralizeObject {
 		};
 
 		// code to generate a neutral class file, the text has to be compiled then first.
-		str = CollStream.on(String.new);
-		str << "/*\nThis file has been automatically generated.\n"
+		stream = CollStream.on(String.new);
+		stream << "/*\nThis file has been automatically generated.\n"
 		"It overwrites all object methods that aren't necessary for introspection and basic functionality\n*/\n\n\n";
-		str << "\n+ " << class.name << " {\n\n";
+		stream << "\n+ " << class.name << " {\n\n";
 
-		// override all methods of this and all superclasses
-		class.respondingMethods.do { |method|
-			var selector = method.name;
-			var lastIndex = method.argNames.lastIndex - 1;
-			if(exclude.includes(selector).not) {
-				str << Char.tab;
-				str << selector;
-				str << " { ";
-				if(method.argNames.size > 1) {
-					str << "| ";
-					method.argNames.drop(1).do { |x, i|
-						var defaultArg = method.prototypeFrame.at(i);
-						//str << "| " x << " |";
-						str << x;
-						if(defaultArg.notNil) {
-							str << " = " <<< x
-						};
-						if(i == lastIndex) { str << " |" } { str << ", " };
-
-					};
-					str << "\n\t\t^this.doesNotUnderstand(thisMethod.name, %)\n"
-					.format(method.argNames.drop(1).join(", "));
-				} {
-
-					str << "\n\t\t^this.doesNotUnderstand(thisMethod.name)"
-				};
-				str << "\n\t}\n\n";
-				overriddenMethodSelectors = overriddenMethodSelectors.add(selector);
-			}
+		if(ellipsisArgs) {
+			this.printRespondingMethods(stream, class, exclude)
+		} {
+			this.printRespondingMethodsWithArgs(stream, class, exclude)
 		};
-
-		str << "\n\n\t" << "*overriddenMethodSelectors {\n\t\t^#" <<< overriddenMethodSelectors  << "\n\t}\n\n";
 
 		"Neutral: generated string in % sec.\n".postf(Main.elapsedTime - startTime);
 
-		str << "}\n\n";
-		^str.collection
+		stream << "}\n\n";
+		^stream.collection
 	}
 
 
