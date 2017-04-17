@@ -33,7 +33,7 @@ a.zeta // 8
 
 a.zeta(10); // 80
 
-a.totalFree = { 1.0.rand }; // exists, should throw
+// a.totalFree = { 1.0.rand }; // exists, should throw (currently doesn't)
 
 a.addMethod('+', { pi }); // override
 
@@ -45,11 +45,18 @@ a + 6 == 14 // yes
 
 
 
+a = ExtendableObject({ |freq| Blip.ar(freq) * 0.2 });
+a.play = { |self, name ... args| Ndef(name, self.object).set(*args).play };
+a.stop = { |self, name| Ndef(name).end };
+
+
+a.play(\x, \freq, 20);
+a.stop(\x);
 
 
 
 
-// Halo2
+// Halo2: hook properties to objects
 
 a = Halo2(2);
 
@@ -63,7 +70,7 @@ a.getHalo(\data);
 
 
 
-// Idiot
+// Idiot: returns always just itself
 
 a = Idiot([1, 2, 3]);
 
