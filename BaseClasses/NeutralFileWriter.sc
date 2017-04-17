@@ -6,8 +6,8 @@ NeutralizeObject {
 	}
 
 
-	*write { |class, excluding, path, ellipsisArgs|
-		var string = this.generateClassFileString(class, excluding, ellipsisArgs);
+	*write { |class, excluding, path, ellipsisArgsOnly|
+		var string = this.generateClassFileString(class, excluding, ellipsisArgsOnly);
 		var existing, extDir;
 
 
@@ -219,7 +219,7 @@ NeutralizeObject {
 	}
 
 
-	*generateClassFileString { |class, excluding ([]), ellipsisArgs = (true)|
+	*generateClassFileString { |class, excluding ([]), ellipsisArgsOnly = (true)|
 		var stream, exclude, startTime;
 		startTime = Main.elapsedTime;
 
@@ -238,7 +238,7 @@ NeutralizeObject {
 		"It overwrites all object methods that aren't necessary for introspection and basic functionality\n*/\n\n\n";
 		stream << "\n+ " << class.name << " {\n\n";
 
-		if(ellipsisArgs) {
+		if(ellipsisArgsOnly) {
 			this.printRespondingMethods(stream, class, exclude)
 		} {
 			this.printRespondingMethodsWithArgs(stream, class, exclude)
