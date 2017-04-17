@@ -42,7 +42,7 @@ Extendable : Neutral {
 
 
 ExtendableObject : Extendable {
-	var <>pr_object;
+	var <>object;
 
 	*new { |object, dict|
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new }, object)
@@ -56,7 +56,7 @@ ExtendableObject : Extendable {
 		if (selector.isSetter) {
 			^this.addMethod(selector, args[0])
 		};
-		^this.pr_object.performList(selector, args)
+		^this.object.performList(selector, args)
 	}
 
 }
