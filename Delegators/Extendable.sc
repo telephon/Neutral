@@ -10,10 +10,14 @@ Extendable : Neutral {
 
 	addMethod { |selector, function|
 		selector = selector.asGetter;
+		/*
+		// this would have to call overriddenMethodSelectors but that is relatively inefficient.
+		// better make a safe subclass?
 		if(this.respondsTo(selector)) {
 			Error(selector.asCompileString
-				+ "exists a method name, so you can't use it as pseudo-method.").throw;
+				+ "exists a method name for the Extendable object, so you can't use it as pseudo-method.").throw;
 		};
+		*/
 		dict[selector] = function;
 	}
 
