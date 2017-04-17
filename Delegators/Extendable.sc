@@ -2,10 +2,10 @@
 
 
 Extendable : Neutral {
-	var dict;
+	var <>pr_method_dict;
 
-	*new {
-		^super.newCopyArgs(IdentityDictionary.new)
+	*new { |dict|
+		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
 	}
 
 	addMethod { |selector, function|
@@ -18,10 +18,11 @@ Extendable : Neutral {
 				+ "exists a method name for the Extendable object, so you can't use it as pseudo-method.").throw;
 		};
 		*/
-		dict[selector] = function;
+		this.pr_method_dict[selector] = function;
 	}
 
 	doesNotUnderstand { | selector ... args |
+		var dict = this.pr_method_dict;
 		var func = dict[selector];
 		if (func.notNil) {
 			^func.functionPerformList(\value, this, args);
@@ -41,21 +42,21 @@ Extendable : Neutral {
 
 
 ExtendableObject : Extendable {
-	var <object;
+	var <>pr_object;
 
-	*new { |object|
-		^super.newCopyArgs(IdentityDictionary.new, object)
+	*new { |object, dict|
+		^super.newCopyArgs(dict ?? { IdentityDictionary.new }, object)
 	}
 
 	doesNotUnderstand { | selector ... args |
-		var func = dict[selector];
+		var func = this.pr_method_dict[selector];
 		if (func.notNil) {
 			^func.functionPerformList(\value, this, args);
 		};
 		if (selector.isSetter) {
 			^this.addMethod(selector, args[0])
 		};
-		^object.performList(selector, args)
+		^this.pr_object.performList(selector, args)
 	}
 
 }
