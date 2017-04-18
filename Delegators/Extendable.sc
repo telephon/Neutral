@@ -3,7 +3,7 @@
 
 Extendable : Neutral {
 	var <>pr_method_dict;
-	var pr_responding_selectors;
+	classvar pr_responding_selectors;
 
 	*new { |dict|
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
@@ -59,6 +59,26 @@ ExtendableObject : Extendable {
 		^this.object.performList(selector, args)
 	}
 
+}
+
+MethodEnvir : EnvironmentRedirect {
+	var <>method_dict;
+
+	*new { |dict, envir|
+		^super.new(envir).method_dict_(dict)
+	}
+
+	at { arg key;
+		^ExtendableObject(envir.at(key), method_dict)
+	}
+
+	put { arg key, val;
+		if(val.isKindOf(ExtendableObject)) {
+			envir.put(key, val.object)
+		} {
+			envir.put(key, val)
+		}
+	}
 }
 
 /*
