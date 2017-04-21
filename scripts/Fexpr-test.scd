@@ -35,6 +35,9 @@ b = a.pingolino
 a.call
 b.call
 
+
+
+
 // static
 StaticFexpr(8).pingolino
 
@@ -98,6 +101,18 @@ Fexpr(1) + Idem(2)
 a = Fexpr(1) + Idem(2);
 a.call
 
+
+// respondsTo
+
+Fexpr([1, 2, 3]).respondsTo(\pingolino) == true
+StaticFexpr([1, 2, 3]).respondsTo(\pingolino) == false
+StaticFexpr(1).respondsTo(\wrapAt) == false
+StaticFexpr([1, 2, 3]).respondsTo(\wrapAt) == true
+
+Idiot(8).respondsTo(\uuzuzuez) == true;
+
+(StaticFexpr(8) + 10).respondsTo('+') == true;
+(StaticFexpr(8) + 10).respondsTo('wrapAt') == true; // well, we can't know this, so assuming.
 
 
 
