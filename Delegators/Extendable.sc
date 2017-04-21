@@ -32,6 +32,10 @@ Extendable : AbstractObject {
 		^this.superPerformList(\doesNotUnderstand, selector, args)
 	}
 
+	respondsTo { |selector|
+		^super.respondsTo(selector) or: { this.pr_method_dict.at(selector).notNil }
+	}
+
 
 
 }
@@ -60,6 +64,11 @@ ExtendableObject : Extendable {
 	pr_forwardToReceiver { |selector, args|
 		^this.object.performList(selector, args)
 	}
+
+	respondsTo { |selector|
+		^object.respondsTo(selector) or: { super.respondsTo(selector) }
+	}
+
 
 
 }

@@ -85,6 +85,10 @@ Fexpr : AbstractObject {
 		^this.class.opClass.new(this, selector, args)
 	}
 
+	respondsTo { |selector|
+		^true
+	}
+
 	// intensional equality
 
 	== { |that|
@@ -159,12 +163,12 @@ OpFexpr : Fexpr {
 Fexpr with "static" checking: you can't accidentally build expressions
 that are statically invalid (where the receiver doesn't implement the selector)
 
+It can't guarantee this to be correct when building larger calculations, because their return value is dynamic
+
 */
 
 StaticFexpr : Fexpr {
 
-	*opClass { ^StaticOpFexpr }
-
 	doesNotUnderstand { |selector ... args|
 		var receiver = this.pr_receiver;
 		^if(receiver.respondsTo(selector)) {
@@ -175,21 +179,10 @@ StaticFexpr : Fexpr {
 		}
 	}
 
-
-}
-
-
-StaticOpFexpr : OpFexpr {
-
-	doesNotUnderstand { |selector ... args|
-		var receiver = this.pr_receiver;
-		^if(receiver.respondsTo(selector)) {
-			this.class.opClass.new(receiver, selector, args)
-		} {
-			"Error in %".format(this).error;
-			DoesNotUnderstandError(receiver, selector, args).throw
-		}
+	respondsTo { |selector|
+		^this.pr_receiver.respondsTo(selector)
 	}
+
 
 }
 
