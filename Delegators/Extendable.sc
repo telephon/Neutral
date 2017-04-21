@@ -8,6 +8,7 @@ Extendable : AbstractObject {
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
 	}
 
+
 	addMethod { |selector, function|
 		selector = selector.asGetter;
 		if(this.respondsTo(selector)) {
@@ -36,6 +37,17 @@ Extendable : AbstractObject {
 		^super.respondsTo(selector) or: { this.pr_method_dict.at(selector).notNil }
 	}
 
+	== { |that|
+		^this.compareObject(that, [\pr_method_dict])
+	}
+
+	!= { |that|
+		^not(this == that)
+	}
+
+	hash {
+		^this.instVarHash([\pr_method_dict])
+	}
 
 
 }
@@ -69,6 +81,18 @@ ExtendableObject : Extendable {
 		^object.respondsTo(selector) or: { super.respondsTo(selector) }
 	}
 
+	// for equality, we ignore the added methods
+	== { |that|
+		^this.compareObject(that, [\object])
+	}
+
+	!= { |that|
+		^not(this == that)
+	}
+
+	hash {
+		^this.instVarHash([\object])
+	}
 
 
 }
@@ -127,6 +151,10 @@ Halo2 : AbstractObject {
 		^receiver.performList(selector, object, adverb)
 	}
 
+	/*
+	question: should two equal objects with different halos be equal?
+	*/
+
 }
 
 
@@ -142,6 +170,7 @@ Idiot : Fexpr {
 		^this
 	}
 	doesNotUnderstand { ^this }
+
 }
 
 
