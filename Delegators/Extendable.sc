@@ -32,18 +32,6 @@ Extendable : AbstractObject {
 		^this.pr_forwardToReceiver(selector, args)
 	}
 
-	reverseDoesNotUnderstand { | selector ... args |
-		var func = this.pr_method_dict[selector];
-		if (func.notNil) {
-			^func.functionPerformList(\value, this, args)
-		};
-		^this.pr_forwardToReceiver(selector, args)
-	}
-
-	performBinaryOpOnSomething { |selector, obj, adverb|
-		^this.reverseDoesNotUnderstand(selector, obj, adverb)
-	}
-
 	pr_forwardToReceiver { |selector, args|
 		^this.superPerformList(\doesNotUnderstand, selector, args)
 	}
@@ -61,9 +49,22 @@ ExtendableObject : Extendable {
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new }, object)
 	}
 
+	reverseDoesNotUnderstand { | selector, what ... args |
+		var func = this.pr_method_dict[selector];
+		if (func.notNil) {
+			^func.functionPerformList(\value, this, [what] ++ this.object ++ args)
+		};
+		^what.performList(selector, [this.object] ++ args)
+	}
+
+	performBinaryOpOnSomething { |selector, what, adverb|
+		^this.reverseDoesNotUnderstand(selector, what, adverb)
+	}
+
 	pr_forwardToReceiver { |selector, args|
 		^this.object.performList(selector, args)
 	}
+
 
 }
 
