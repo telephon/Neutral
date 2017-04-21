@@ -20,19 +20,36 @@ a.totalFree = { 1.0.rand } // exists, should throw
 a = Extendable((getDict: { |self| self.pr_method_dict }));
 a.getDict
 
+a.addMethod('+', { |self, x| x + 1 });
+
+a + 2;
+2 + a;
+
+a.addMethod('performBinaryOpOnSomething', { |self, selector ... args| 1.performList(selector, args) });
+2 + a;
+
 
 
 // ExtendableObject
 
 a = ExtendableObject(8);
+b = ExtendableObject(7);
 
-a + 9; // 17
+a - 9 == -1;
+9 - a == 1;
+
+a - b == 1;
+b - a == -1;
+
+
 
 a.zeta = { |self, y = 1| self.object * y };
 
 a.zeta // 8
 
 a.zeta(10); // 80
+
+a.zeta(b) // 56
 
 // a.totalFree = { 1.0.rand }; // exists, should throw (currently doesn't)
 

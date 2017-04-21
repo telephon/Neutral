@@ -23,6 +23,10 @@ d = Fexpr(2);
 d == c
 
 
+a = Fexpr(2);
+(a - 3).call == -1;
+(3 - a).call == 1;
+
 
 // more calls
 Fexpr(2) + 9 * 10;
