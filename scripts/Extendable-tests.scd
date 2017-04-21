@@ -17,7 +17,7 @@ a.pingolino(10, 2, 3) // 9
 a.totalFree = { 1.0.rand } // exists, should throw
 
 
-a = Extendable((getDict: { |self| self.dict }));
+a = Extendable((getDict: { |self| self.pr_method_dict }));
 a.getDict
 
 
@@ -78,24 +78,37 @@ a = MethodEnvir(d).push;
 ~x + 10;
 
 ~y = 10;
-~x + ~y; // todo: why does this fail?
+~x + ~y;
+
+a[\x] + a[\y]
+
+
+a = ExtendableObject(9).addMethod('+', { |self, a| self.object + a + 0.1.rand2 });
+b = ExtendableObject(10).addMethod('+', { |self, a| self.object + a + 0.1.rand2 });
+a + b
+
+0
 
 ~x.test(1, 2, 3)
 ~x.object
+
+a.pop;
+
 
 
 // Halo2: hook properties to objects
 
 a = Halo2(2);
 
-a + 4
+a - 4 == -2
 
-4 + a // should this work?
+4 - a  == 2
 
 a.addHalo(\data, { "yes" });
 
 a.getHalo(\data);
 
+a.getHalo(\data).value;
 
 
 // Idiot: returns always just itself

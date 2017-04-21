@@ -23,14 +23,6 @@ d = Fexpr(2);
 d == c
 
 
-// uncaluatables remain opaque
-x = a.blork
-x.dump
-x.blork.dump
-x == x.blork;
-
-b.dump
-b.call
 
 // more calls
 Fexpr(2) + 9 * 10;
@@ -74,7 +66,7 @@ x = [1, 2, 3];
 a = Immute(x);
 b = a.put(1, 1000);
 b.call
-x // still [1, 2, 3]
+x == [1, 2, 3] // still [1, 2, 3]
 
 
 
@@ -92,7 +84,7 @@ b.value(8);
 
 
 a = Fexpr2(1);
-a.series(10, 20).call
+a.series(3, 20).call
 
 // combinatorics
 
