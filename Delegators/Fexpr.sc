@@ -1,6 +1,10 @@
 
 
+
 /*
+"Auch ein Mann ohne Eigenschaften hat einen Vater mit Eigenschaften" (Musil)
+
+      ***
 
 This combines some ideas by Alan Kay (objects as gneric interpreters), James McCartney (abstract functions) and John N. Shutt (vau calculus).
 
@@ -14,20 +18,13 @@ There is one *special method* : "call". It does what is normally referred to as 
 
 The "private public" methods start with "pr_" to avoid accidental use.
 
-      ***
-
-
-Note:
-It would be also nice to be able to lift things like:
-
-a = Fexpr({ |x| x + 2 });
-b = [1, 2, 3].collect(a);
-
-and b being a Fexpr. But this is currently not solvable easily.
-The problem is related to the partial application syntax.
-
 
 */
+
+
+
+
+
 
 /*
 
@@ -211,6 +208,7 @@ Fexpr2 : Fexpr {
 	}
 }
 
+
 OpFexpr2 : OpFexpr {
 
 	value { |...args|
@@ -278,3 +276,16 @@ one method that is needed universally
 }
 
 
+/*
+
+Note:
+It would be also nice to be able to lift things like:
+
+a = Fexpr({ |x| x + 2 });
+b = [1, 2, 3].collect(a);
+
+and b being a Fexpr. But this is currently not solvable easily.
+The problem is related to the partial application syntax.
+
+
+*/
