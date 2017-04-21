@@ -158,19 +158,3 @@ Halo2 : AbstractObject {
 }
 
 
-/*
-
-and finally ...
-
-*/
-
-Idiot : Fexpr {
-
-	performBinaryOpOnSomething { |selector, obj|
-		^this
-	}
-	doesNotUnderstand { ^this }
-
-}
-
-

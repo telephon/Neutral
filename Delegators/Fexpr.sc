@@ -278,6 +278,24 @@ Immute : Idem {
 
 /*
 
+and finally ...
+
+*/
+
+Idiot : Fexpr {
+
+	performBinaryOpOnSomething { |selector, obj|
+		^this
+	}
+	doesNotUnderstand { ^this }
+
+}
+
+
+
+
+/*
+
 one method that is needed universally
 
 */
