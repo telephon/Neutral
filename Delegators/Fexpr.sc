@@ -85,6 +85,10 @@ Fexpr : AbstractObject {
 		^this.class.opClass.new(this, selector, args)
 	}
 
+	performBinaryOpOnSomething { |selector, obj, adverb|
+		^this.class.opClass.new(obj, selector, [this] ++ adverb)
+	}
+
 	respondsTo { |selector|
 		^true
 	}
@@ -101,10 +105,6 @@ Fexpr : AbstractObject {
 
 	hash {
 		^this.instVarHash([\pr_receiver])
-	}
-
-	performBinaryOpOnSomething { |selector, obj, adverb|
-		^this.class.opClass.new(obj, selector, [this] ++ adverb)
 	}
 
 	storeOn { |stream|
