@@ -1,7 +1,7 @@
 
 
 
-Extendable : Neutral {
+Extendable : AbstractObject {
 	var <>pr_method_dict;
 	classvar pr_responding_selectors;
 
@@ -22,20 +22,33 @@ Extendable : Neutral {
 	}
 
 	doesNotUnderstand { | selector ... args |
-		var dict = this.pr_method_dict;
-		var func = dict[selector];
+		var func = this.pr_method_dict[selector];
 		if (func.notNil) {
-			^func.functionPerformList(\value, this, args);
+			^func.functionPerformList(\value, this, args)
 		};
 		if (selector.isSetter) {
 			^this.addMethod(selector, args[0])
 		};
-		func = dict[\forward];
-		if (func.notNil) {
-			^func.functionPerformList(\value, dict, selector, args);
-		};
-		^this.superPerformList(\doesNotUnderstand, selector, args);
+		^this.pr_forwardToReceiver(selector, args)
 	}
+
+	reverseDoesNotUnderstand { | selector ... args |
+		var func = this.pr_method_dict[selector];
+		if (func.notNil) {
+			^func.functionPerformList(\value, this, args)
+		};
+		^this.pr_forwardToReceiver(selector, args)
+	}
+
+	performBinaryOpOnSomething { |selector, obj, adverb|
+		^this.reverseDoesNotUnderstand(selector, obj, adverb)
+	}
+
+	pr_forwardToReceiver { |selector, args|
+		^this.superPerformList(\doesNotUnderstand, selector, args)
+	}
+
+
 
 }
 
@@ -48,14 +61,7 @@ ExtendableObject : Extendable {
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new }, object)
 	}
 
-	doesNotUnderstand { | selector ... args |
-		var func = this.pr_method_dict[selector];
-		if (func.notNil) {
-			^func.functionPerformList(\value, this, args);
-		};
-		if (selector.isSetter) {
-			^this.addMethod(selector, args[0])
-		};
+	pr_forwardToReceiver { |selector, args|
 		^this.object.performList(selector, args)
 	}
 
@@ -89,7 +95,7 @@ this might be better as a subclass of Fexpr, if we want a binary op math interfa
 
 */
 
-Halo2 : Neutral {
+Halo2 : AbstractObject {
 
 	var <object, dict;
 
@@ -111,6 +117,10 @@ Halo2 : Neutral {
 		^object.performList(selector, args)
 	}
 
+	performBinaryOpOnSomething { |selector, receiver, adverb|
+		^receiver.performList(selector, object, adverb)
+	}
+
 }
 
 
@@ -122,7 +132,7 @@ and finally ...
 
 Idiot : Fexpr {
 
-	reverseComposeBinaryOp { |selector, obj|
+	performBinaryOpOnSomething { |selector, obj|
 		^this
 	}
 	doesNotUnderstand { ^this }

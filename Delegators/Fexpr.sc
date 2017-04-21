@@ -29,8 +29,35 @@ The problem is related to the partial application syntax.
 
 */
 
+/*
 
-Fexpr : Neutral {
+AbstractObject does support binary op dispatch, like Object.
+
+*/
+
+AbstractObject : Neutral {
+
+	performBinaryOpOnSimpleNumber { arg aSelector, thing, adverb;
+		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+	performBinaryOpOnSignal { arg aSelector, thing, adverb;
+		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+	performBinaryOpOnComplex { arg aSelector, thing, adverb;
+		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+	performBinaryOpOnSeqColl { arg aSelector, thing, adverb;
+		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+	performBinaryOpOnUGen { arg aSelector, thing, adverb;
+		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+
+}
+
+
+
+Fexpr : AbstractObject {
 
 
 	var <pr_receiver;
@@ -65,20 +92,7 @@ Fexpr : Neutral {
 		^this.instVarHash([\pr_receiver])
 	}
 
-	// double dispatch for mixed operations
-	performBinaryOpOnSimpleNumber { arg selector, aNumber, adverb;
-		^this.reverseComposeBinaryOp(selector, aNumber, adverb)
-	}
-	performBinaryOpOnSignal { arg selector, aSignal, adverb;
-		^this.reverseComposeBinaryOp(selector, aSignal, adverb)
-	}
-	performBinaryOpOnComplex { arg selector, aComplex, adverb;
-		^this.reverseComposeBinaryOp(selector, aComplex, adverb)
-	}
-	performBinaryOpOnSeqColl { arg selector, aSeqColl, adverb;
-		^this.reverseComposeBinaryOp(selector, aSeqColl, adverb)
-	}
-	reverseComposeBinaryOp { |selector, obj, adverb|
+	performBinaryOpOnSomething { |selector, obj, adverb|
 		^this.class.opClass.new(obj, selector, [this] ++ adverb)
 	}
 
@@ -105,6 +119,8 @@ OpFexpr : Fexpr {
 	call {
 		// consider an optimized (thunked) version: the arguments might be called repeatedly.
 		// TODO: better error message for runtime errors?
+		// NOTE: here is a critical question: should the receiver/args be called on call?
+		// this is something to think about, considering Shutt's vau calculus
 		var value = this.pr_receiver.call(this);
 		var arguments = this.pr_arguments.collect(_.call(this));
 		^value.performList(this.pr_selector, arguments)
@@ -177,6 +193,22 @@ Fexpr2 : Fexpr {
 	value { |...args|
 		^this.call.valueArray(args)
 	}
+
+	valueArray { |args|
+		^this.call.valueArray(args)
+	}
+
+	valueEnvir { |... args|
+		^this.call.valueArrayEnvir(args)
+	}
+
+	valueArrayEnvir { |args|
+		^this.call.valueArrayEnvir(args)
+	}
+
+	valueWithEnvir { |envir|
+		^this.call.valueWithEnvir(envir)
+	}
 }
 
 OpFexpr2 : OpFexpr {
@@ -205,18 +237,9 @@ Idem : Fexpr {
 		^this.class.new(this.pr_receiver.performList(selector, args))
 	}
 
-	// double dispatch for mixed operations
-	performBinaryOpOnSimpleNumber { arg selector, aNumber, adverb;
-		^this.class.new(aNumber.perform(selector, this.pr_receiver, adverb))
-	}
-	performBinaryOpOnSignal { arg selector, aSignal, adverb;
-		^this.class.new(aSignal.perform(selector, this.pr_receiver, adverb))
-	}
-	performBinaryOpOnComplex { arg selector, aComplex, adverb;
-		^this.class.new(aComplex.perform(selector, this.pr_receiver, adverb))
-	}
-	performBinaryOpOnSeqColl { arg selector, aSeqColl, adverb;
-		^this.class.new(aSeqColl.perform(selector, this.pr_receiver, adverb))
+
+	performBinaryOpOnSomething { |selector, obj, adverb|
+		^this.class.new(obj.perform(selector, this.pr_receiver, adverb))
 	}
 
 	storeOn { |stream|
