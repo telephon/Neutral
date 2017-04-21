@@ -3,7 +3,6 @@
 
 Extendable : AbstractObject {
 	var <>pr_method_dict;
-	classvar pr_responding_selectors;
 
 	*new { |dict|
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
@@ -11,10 +10,7 @@ Extendable : AbstractObject {
 
 	addMethod { |selector, function|
 		selector = selector.asGetter;
-		if(pr_responding_selectors.isNil) {
-			pr_responding_selectors = this.class.overriddenMethodSelectors.as(IdentitySet);
-		};
-		if(this.respondsTo(selector) and: { pr_responding_selectors.includes(selector).not }) {
+		if(this.respondsTo(selector)) {
 			Error(selector.asCompileString
 				+ "exists a method name for the Extendable object, so you can't use it as pseudo-method.").throw;
 		};

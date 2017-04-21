@@ -34,6 +34,8 @@ AbstractObject does support binary op dispatch, like Object.
 
 AbstractObject : Neutral {
 
+	classvar pr_responding_selectors;
+
 	performBinaryOpOnSimpleNumber { arg aSelector, thing, adverb;
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
 	}
@@ -48,6 +50,14 @@ AbstractObject : Neutral {
 	}
 	performBinaryOpOnUGen { arg aSelector, thing, adverb;
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+
+	respondsTo { |selector|
+		// this is slow. A primitive version can make this faster
+		if(pr_responding_selectors.isNil) {
+			pr_responding_selectors = this.class.overriddenMethodSelectors.as(IdentitySet);
+		};
+		^super.respondsTo(selector) and: { pr_responding_selectors.includes(selector).not }
 	}
 
 }
@@ -115,9 +125,12 @@ OpFexpr : Fexpr {
 
 	call {
 		// consider an optimized (thunked) version: the arguments might be called repeatedly.
+		// the best is to do this memoisation in the call context, not in the object itself.
+
 		// TODO: better error message for runtime errors?
 		// NOTE: here is a critical question: should the receiver/args be called on call?
 		// this is something to think about, considering Shutt's vau calculus
+
 		var value = this.pr_receiver.call(this);
 		var arguments = this.pr_arguments.collect(_.call(this));
 		^value.performList(this.pr_selector, arguments)
@@ -153,12 +166,15 @@ StaticFexpr : Fexpr {
 	*opClass { ^StaticOpFexpr }
 
 	doesNotUnderstand { |selector ... args|
-		^if(this.pr_receiver.respondsTo(selector)) {
-			this.class.opClass.new(this.pr_receiver, selector, args)
+		var receiver = this.pr_receiver;
+		^if(receiver.respondsTo(selector)) {
+			this.class.opClass.new(receiver, selector, args)
 		} {
-			DoesNotUnderstandError(this, selector, args).throw
+			"Error in %".format(this).error;
+			DoesNotUnderstandError(receiver, selector, args).throw
 		}
 	}
+
 
 }
 
@@ -166,10 +182,12 @@ StaticFexpr : Fexpr {
 StaticOpFexpr : OpFexpr {
 
 	doesNotUnderstand { |selector ... args|
-		^if(this.pr_receiver.respondsTo(selector)) {
-			this.class.opClass.new(this.pr_receiver, selector, args)
+		var receiver = this.pr_receiver;
+		^if(receiver.respondsTo(selector)) {
+			this.class.opClass.new(receiver, selector, args)
 		} {
-			DoesNotUnderstandError(this, selector, args).throw
+			"Error in %".format(this).error;
+			DoesNotUnderstandError(receiver, selector, args).throw
 		}
 	}
 
@@ -238,7 +256,6 @@ Idem : Fexpr {
 	doesNotUnderstand { |selector ... args|
 		^this.class.new(this.pr_receiver.performList(selector, args))
 	}
-
 
 	performBinaryOpOnSomething { |selector, obj, adverb|
 		^this.class.new(obj.perform(selector, this.pr_receiver, adverb))
