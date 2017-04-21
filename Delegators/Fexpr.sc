@@ -206,6 +206,10 @@ Fexpr2 : Fexpr {
 	valueWithEnvir { |envir|
 		^this.call.valueWithEnvir(envir)
 	}
+
+	performKeyValuePairs { |selector, pairs|
+		^this.call.performKeyValuePairs(selector, pairs)
+	}
 }
 
 
