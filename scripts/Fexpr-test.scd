@@ -42,7 +42,7 @@ b.call
 StaticFexpr(8).pingolino
 
 a = StaticFexpr(8) + 10;
-a.pingolino
+a.pingolino // we can't know, so this doesn't throw
 a.call
 
 Fexpr(0).isKindOf(Fexpr)
@@ -58,7 +58,7 @@ a + 9;
 
 9 + a == (a + 9)
 
-a.neg.neg
+a.neg.neg == a
 
 a = 8;
 a.blend(0.4, 0.2);
