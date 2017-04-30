@@ -62,35 +62,11 @@ AbstractObject : Neutral {
 
 }
 
-
-
-Fexpr : AbstractObject {
-
-
-	var <pr_receiver;
+AbstractDelegator : AbstractObject {
+	var <>pr_receiver;
 
 	*new { |receiver|
 		^super.newCopyArgs(receiver)
-	}
-
-	*opClass { ^OpFexpr }
-
-	call { |caller|
-		// todo: build in the recursion catching from Maybe
-		// calling all instance variables via the external interface offers flexibility for subclasses
-		^this.pr_receiver.call(caller)
-	}
-
-	doesNotUnderstand { |selector ... args|
-		^this.class.opClass.new(this, selector, args)
-	}
-
-	performBinaryOpOnSomething { |selector, obj, adverb|
-		^this.class.opClass.new(obj, selector, [this] ++ adverb)
-	}
-
-	respondsTo { |selector|
-		^true
 	}
 
 	// intensional equality
@@ -116,6 +92,76 @@ Fexpr : AbstractObject {
 		// for now, use storeOn, this needs to be recursion-protected later
 		this.storeOn(stream)
 	}
+}
+
+/*
+
+Provide a function that is called for each message receipt.
+The first argument passed to it is the receiver
+The second argument (handler) is a function that when called performs the selector.
+
+*/
+
+Lift1 : AbstractDelegator {
+	var <>pr_function;
+
+	*new { |receiver, function|
+		^super.newCopyArgs(receiver, function)
+	}
+
+	doesNotUnderstand { | selector ... args |
+		^this.pr_function.value(
+			this.pr_receiver,
+			{ |x| x.performList(selector, args) }
+		)
+	}
+
+}
+
+/*
+
+Same like Lift1, but return a new instance of Lift always, with the same function.
+
+*/
+
+Lift : Lift1 {
+	doesNotUnderstand { | selector ... args |
+		var func = this.pr_function;
+		^this.class.new(
+			func.value(
+				this.pr_receiver,
+				{ |x| x.performList(selector, args) }
+			),
+			func
+		)
+	}
+}
+
+
+Fexpr : AbstractDelegator {
+
+
+	*opClass { ^OpFexpr }
+
+	call { |caller|
+		// todo: build in the recursion catching from Maybe
+		// calling all instance variables via the external interface offers flexibility for subclasses
+		^this.pr_receiver.call(caller)
+	}
+
+	doesNotUnderstand { |selector ... args|
+		^this.class.opClass.new(this, selector, args)
+	}
+
+	performBinaryOpOnSomething { |selector, obj, adverb|
+		^this.class.opClass.new(obj, selector, [this] ++ adverb)
+	}
+
+	respondsTo { |selector|
+		^true
+	}
+
+
 
 }
 
