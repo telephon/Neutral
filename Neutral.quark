@@ -1,0 +1,7 @@
+(
+	\name: 			"Neutral",
+	\summary:		"A kernel for call delegation",
+	\author: 		"Julian Rohrhuber",
+	\organization: 	"Institute for Music and Media Duesseldorf",
+	\since: 		"2017"
+)
