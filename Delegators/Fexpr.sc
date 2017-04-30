@@ -12,11 +12,12 @@ In Smalltalk-like OOP, expressions primarily evaluate to their respective object
 
       ***
 
-The name FEXPR (functional expression) is chosen for historical reasons, it could be changed to something more idiomatic.
-
-There is one *special method* : "call". It does what is normally referred to as call, evaluation, reduction, etc.
-
 The "private public" methods start with "pr_" to avoid accidental use.
+
+
+      ***
+
+Note that for clariry, this class hierarchy spreads out a number of feature that could be combined.
 
 
 */
@@ -61,6 +62,14 @@ AbstractObject : Neutral {
 	}
 
 }
+
+/*
+
+an abstract object that holds a receiver object.
+Arguably, the accessor for the receiver could be simpler, like .object.
+But we should be careful not to interfere with the interfaces we want to delegate
+
+*/
 
 AbstractDelegator : AbstractObject {
 	var <>pr_receiver;
@@ -116,6 +125,11 @@ Lift1 : AbstractDelegator {
 		)
 	}
 
+	storeOn { |stream|
+		stream << this.class.name;
+		stream << "(" <<< this.pr_receiver << ", " <<< pr_function << ")"
+	}
+
 }
 
 /*
@@ -125,6 +139,7 @@ Same like Lift1, but return a new instance of Lift always, with the same functio
 */
 
 Lift : Lift1 {
+
 	doesNotUnderstand { | selector ... args |
 		var func = this.pr_function;
 		^this.class.new(
@@ -136,6 +151,16 @@ Lift : Lift1 {
 		)
 	}
 }
+
+
+/*
+
+The name FEXPR (functional expression) is chosen for historical reasons, it could be changed to something more idiomatic.
+
+There is one *special method* : "call". It does what is normally referred to as call, evaluation, reduction, etc.
+
+*/
+
 
 
 Fexpr : AbstractDelegator {
