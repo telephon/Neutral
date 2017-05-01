@@ -37,20 +37,24 @@ AbstractObject : Neutral {
 
 	classvar pr_responding_selectors;
 
-	performBinaryOpOnSimpleNumber { arg aSelector, thing, adverb;
+	performBinaryOpOnSimpleNumber { | aSelector, thing, adverb |
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
 	}
-	performBinaryOpOnSignal { arg aSelector, thing, adverb;
+	performBinaryOpOnSignal { | aSelector, thing, adverb |
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
 	}
-	performBinaryOpOnComplex { arg aSelector, thing, adverb;
+	performBinaryOpOnComplex { | aSelector, thing, adverb |
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
 	}
-	performBinaryOpOnSeqColl { arg aSelector, thing, adverb;
+	performBinaryOpOnSeqColl { | aSelector, thing, adverb |
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
 	}
-	performBinaryOpOnUGen { arg aSelector, thing, adverb;
+	performBinaryOpOnUGen { | aSelector, thing, adverb |
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
+
+	performBinaryOpOnSomething { | aSelector, thing, adverb |
+		^this.subclassResponsibility(thisMethod)
 	}
 
 	respondsTo { |selector|
@@ -125,9 +129,21 @@ Lift1 : AbstractDelegator {
 		)
 	}
 
+	performBinaryOpOnSomething { | selector, thing, adverb |
+		^this.pr_function.value(
+			this.pr_receiver,
+			{ |x| x.performList(selector, [thing] ++ adverb) }
+		)
+	}
+
 	storeOn { |stream|
 		stream << this.class.name;
 		stream << "(" <<< this.pr_receiver << ", " <<< pr_function << ")"
+	}
+
+	printOn { |stream|
+		stream << this.class.name;
+		stream << "(" <<< this.pr_receiver << ")"
 	}
 
 }

@@ -1,4 +1,10 @@
 
+/*
+
+An object for prototyping. You can add and remove methods at runtime.
+This could be extended to work like James Harkin's Proto
+
+*/
 
 
 Extendable : AbstractObject {
@@ -11,7 +17,7 @@ Extendable : AbstractObject {
 
 	addMethod { |selector, function|
 		selector = selector.asGetter;
-		if(this.respondsTo(selector)) {
+		if(super.respondsTo(selector)) {
 			Error(selector.asCompileString
 				+ "exists a method name for the Extendable object, so you can't use it as pseudo-method.").throw;
 		};
@@ -27,6 +33,10 @@ Extendable : AbstractObject {
 			^this.addMethod(selector, args[0])
 		};
 		^this.pr_forwardToReceiver(selector, args)
+	}
+
+	performBinaryOpOnSomething { | aSelector, thing, adverb |
+		^this.doesNotUnderstand(selector, thing, adverb)
 	}
 
 	pr_forwardToReceiver { |selector, args|
@@ -53,10 +63,13 @@ Extendable : AbstractObject {
 		^this.instVarHash([\pr_method_dict])
 	}
 
-
 }
 
+/*
 
+A delegator that allows to add and override methods to an object
+
+*/
 
 ExtendableObject : Extendable {
 	var <>object;
