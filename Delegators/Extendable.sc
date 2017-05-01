@@ -35,7 +35,7 @@ Extendable : AbstractObject {
 		^this.pr_forwardToReceiver(selector, args)
 	}
 
-	performBinaryOpOnSomething { | aSelector, thing, adverb |
+	performBinaryOpOnSomething { | selector, thing, adverb |
 		^this.doesNotUnderstand(selector, thing, adverb)
 	}
 
@@ -51,6 +51,9 @@ Extendable : AbstractObject {
 		^super.respondsTo(selector) or: { this.pr_method_dict.at(selector).notNil }
 	}
 
+	// doesn't work yet, because equality of functions is not defined in the standard implementation
+	// but that could be added later.
+	/*
 	== { |that|
 		^this.compareObject(that, [\pr_method_dict])
 	}
@@ -61,6 +64,12 @@ Extendable : AbstractObject {
 
 	hash {
 		^this.instVarHash([\pr_method_dict])
+	}
+	*/
+
+	storeOn { |stream|
+		stream << this.class.name;
+		stream << "(" <<< this.pr_method_dict << ")"
 	}
 
 }
@@ -113,6 +122,16 @@ ExtendableObject : Extendable {
 
 	hash {
 		^this.instVarHash([\object])
+	}
+
+	storeOn { |stream|
+		stream << this.class.name;
+		stream << "(" <<< this.object << ", " <<< this.pr_method_dict << ")"
+	}
+
+	printOn { |stream|
+		stream << this.class.name;
+		stream << "(" <<< this.object << ")"
 	}
 
 

@@ -102,8 +102,8 @@ AbstractDelegator : AbstractObject {
 	}
 
 	printOn { |stream|
-		// for now, use storeOn, this needs to be recursion-protected later
-		this.storeOn(stream)
+		stream << this.class.name;
+		stream << "(" << this.pr_receiver << ")"
 	}
 }
 
@@ -143,7 +143,7 @@ Lift1 : AbstractDelegator {
 
 	printOn { |stream|
 		stream << this.class.name;
-		stream << "(" <<< this.pr_receiver << ")"
+		stream << "(" << this.pr_receiver << ")"
 	}
 
 }
@@ -238,6 +238,11 @@ OpFexpr : Fexpr {
 	storeOn { |stream|
 		stream << this.class.name;
 		stream << "(" <<<* [this.pr_receiver, this.pr_selector, pr_arguments] << ")"
+	}
+
+	printOn { |stream|
+		stream << this.class.name;
+		stream << "(" <<* [this.pr_receiver, this.pr_selector, pr_arguments] << ")"
 	}
 
 
@@ -343,6 +348,10 @@ Idem : Fexpr {
 
 	storeOn { |stream|
 		stream << this.class.name << "(" <<< this.pr_receiver << ")"
+	}
+
+	printOn { |stream|
+		stream << this.class.name << "(" << this.pr_receiver << ")"
 	}
 
 }

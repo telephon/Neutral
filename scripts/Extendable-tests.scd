@@ -13,7 +13,6 @@ a.pingolino = { |self, x, y, z| self.pongiloni(x, y, z) }; // forward
 
 a.pingolino(10, 2, 3) // 9
 
-
 a.totalFree = { 1.0.rand } // exists, should throw
 
 
@@ -28,7 +27,7 @@ a + 2;
 a.addMethod('performBinaryOpOnSomething', { |self, selector ... args| 1.performList(selector, args) });
 2 + a;
 
-
+a.asCompileString
 
 // ExtendableObject
 
@@ -50,6 +49,8 @@ a.zeta // 8
 a.zeta(10); // 80
 
 a.zeta(b) // 56
+
+a.asCompileString.interpret == a // true
 
 // a.totalFree = { 1.0.rand }; // exists, should throw (currently doesn't)
 
