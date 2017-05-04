@@ -45,3 +45,16 @@ a = Lift([
 b = a.play; // b is a Lift of an array of synths
 b.release(2); // you can release them directly
 
+
+// convenient syntax:
+(
+b = [
+	{ Blip.ar([5, 6], 1000) * 0.4 },
+	{ BPF.ar(PinkNoise.ar(10 ! 2), 700, 0.1) * 0.3 },
+	{ SinOsc.ar(XLine.kr(8000, 200, 60) * [1, 1.23]) * 0.1 }
+].lift.play
+)
+
+b.release;
+
+
