@@ -35,6 +35,26 @@ b = a.pingolino
 a.call
 b.call
 
+a = Fexpr(_ + 2) + 3;
+a.value; // returns a new Fexpr, so this is not what we wanted
+a.call // BinaryOpFunction
+a.call.value(0) // 5
+
+// you can wrap the value, however, by a sort of currying
+b = a.value(0);
+b.call; // 5
+
+// so in general we can say x.call.value == x.value.call
+
+// a Fexpr2 will evaluate on call
+a = Fexpr2(_ + 2) + 3;
+a.value(0); // 5
+
+
+
+// but for math, you can do the same for functions directly
+a = (_ + 2) + 3;
+a.value(0) // 5
 
 
 
