@@ -125,14 +125,19 @@ Lift1 : AbstractDelegator {
 	doesNotUnderstand { | selector ... args |
 		^this.pr_function.value(
 			this.pr_receiver,
-			{ |x| x.performList(selector, args) }
+			{ |x| x.performList(selector, args) },
+			selector,
+			args
 		)
 	}
 
 	performBinaryOpOnSomething { | selector, thing, adverb |
+		var args = [thing] ++ adverb;
 		^this.pr_function.value(
 			this.pr_receiver,
-			{ |x| x.performList(selector, [thing] ++ adverb) }
+			{ |x| x.performList(selector, args) },
+			selector,
+			args
 		)
 	}
 
@@ -161,9 +166,11 @@ Lift : Lift1 {
 		^this.class.new(
 			func.value(
 				this.pr_receiver,
-				{ |x| x.performList(selector, args) }
+				{ |x| x.performList(selector, args) },
+				selector,
+				args
 			),
-			func
+			func,
 		)
 	}
 }
