@@ -1,12 +1,23 @@
 
 // a simple post function: post every transition
+
 (
-f = { |receiver, func| var result = func.value(receiver); "% -> %\n".postf(receiver, result); result };
+var f = { |receiver, func, selector, args|
+	var result = func.value(receiver);
+	var astr = if(args.isEmpty) { "" } { " and by " ++ args.unbubble };
+	"the value '%' was mapped by '%'% to %\n".postf(receiver, selector, astr, result);
+	result
+};
+
 a = Lift(1, f);
+b = Lift(5, f);
 )
 
 a.neg
 a.neg.neg
+gcd(asInteger(a + 9 / 2, 18), 15)
+a + b / b
+
 
 
 // testing some binops
@@ -22,14 +33,38 @@ c +.x [1, 2, 3];
 [1, 2, 3] +.t c
 
 
-
-
-
-// lift calls to the items of an array
+///////////////////////////////////////////
+// lift all calls to the items of an array
 
 a = Lift([1, 2, 3], { |receiver, func| receiver.collect(func) });
+a + 9; // ok, this we can also do normally
+a.dup(3); // but this is different
 a.bubble;
-a.bubble.add(8);
+a.bubble.add(8).add(10);
+a.series(5, 20);
+a.asArray // it can get a little counterintuitive.
+
+// => all in all, there is a similarity between Lift and ExtendibleObject that we could perhaps take advantage of
+// we could add a list of selectors that are forwarded and others that are not.
+// a rather tedious way of defining this is:
+
+(
+f = { |object, function, exceptions|
+	Lift(
+		object,
+		{ |receiver, func, selector, args|
+			if(exceptions.postln.includes(selector.postln)) { receiver.performList(selector, args) } { function.value(receiver, func) }
+		}
+	)
+};
+)
+
+a = f.([1, 2, 3], { |receiver, func| receiver.collect(func) }, ['asArray', '++']);
+
+a ++ [9, 10, 22] // Lift([ 1, 2, 3, 9, 10, 22 ])
+a.bubble; //  Lift([ [ 1 ], [ 2 ], [ 3 ] ])
+
+
 
 // lift calls to an environment
 
@@ -83,5 +118,18 @@ b = [
 
 b.set(\x, 1.25);
 b.release;
+
+//////////////////////////
+
+// lifting patterns
+
+a = Lift1(Ptuple([Pseries(1, 3, inf), Pseries(3, -1, inf), Pseries(0, 0.1, inf)]), { |receiver, func| receiver.collect(func) });
+
+b = a.normalizeSum;
+
+b.asStream.nextN(8)
+
+
+
 
 
