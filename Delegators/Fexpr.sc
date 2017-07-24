@@ -377,6 +377,54 @@ Immute : Idem {
 
 }
 
+/*
+
+this registers any change. alternatively, we could forward only selected changes, then it would be better to derive from ExtendibleObject and override specific methods.
+
+
+*/
+
+
+Dependants : AbstractDelegator {
+	var <>pr_dependants;
+
+	*new { |receiver|
+		^super.newCopyArgs(receiver).pr_dependants_(IdentitySet.new)
+	}
+
+	addDependant { |obj|
+		this.pr_dependants.add(obj)
+	}
+
+	releaseDependants {
+		this.pr_dependants.clear
+	}
+
+	// every message to the receiver will cause an update.
+	// this allows us a better separation of concerns, because the receiver
+	// doesn't have to know what the dependant is interested in.
+	// so there is no need for a "changed" message.
+
+	doesNotUnderstand { | selector ... args |
+		var res = this.pr_receiver.performList(selector, args);
+		// if you don't want the default "changed" behaviour, you can use
+		// an ExtendibleObject as a wrapper for the object that receives the changes
+		this.pr_dependants.do { |each| each.update(this, selector, args) };
+		^res
+	}
+
+	// this protects the update from infinite recursions
+
+	update { |theChanger, what ... args|
+		if(theChanger != this) {
+			this.pr_receiver.update(theChanger, what, *args)
+		}
+	}
+
+
+}
+
+
 
 
 /*
