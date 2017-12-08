@@ -112,6 +112,7 @@ AbstractDelegator : AbstractObject {
 Provide a function that is called for each message receipt.
 The first argument passed to it is the receiver
 The second argument (handler) is a function that when called performs the selector.
+We use "unlift" for this.
 
 */
 
@@ -120,6 +121,10 @@ Lift1 : AbstractDelegator {
 
 	*new { |receiver, function|
 		^super.newCopyArgs(receiver, function)
+	}
+
+	unlift {
+		^this.pr_receiver
 	}
 
 	doesNotUnderstand { | selector ... args |
