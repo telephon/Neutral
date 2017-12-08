@@ -6,7 +6,7 @@
 
       ***
 
-This combines some ideas by Alan Kay (objects as gneric interpreters), James McCartney (abstract functions) and John N. Shutt (vau calculus).
+This combines some ideas by Alan Kay (objects as generic interpreters), James McCartney (abstract functions) and John N. Shutt (vau calculus).
 
 In Smalltalk-like OOP, expressions primarily evaluate to their respective objects only. From that level on, proper evaluation and application is the responsibilty of each object that receives a message. This library experiments with receivers that build calculation structures rather than performing them.
 
@@ -17,7 +17,7 @@ The "private public" methods start with "pr_" to avoid accidental use.
 
       ***
 
-Note that for clariry, this class hierarchy spreads out a number of feature that could be combined.
+Note that for clarity, this class hierarchy spreads out a number of feature that could be combined.
 
 
 */
@@ -110,9 +110,14 @@ AbstractDelegator : AbstractObject {
 /*
 
 Provide a function that is called for each message receipt.
-The first argument passed to it is the receiver
-The second argument (handler) is a function that when called performs the selector.
-We use "unlift" for this.
+
+1. The first argument passed to the function is the receiver (the object wrapped)
+2. The second argument (handler) is a function that when called performs the selector.
+   This handler function is called with the receiver as first argument, and a function as a second.
+   In order to define what actually should happen, you should call this function on the result of your calculation
+   e.g. for wrapping a list in a collect: Lift([1, 2, 3], { |recv, func| recv.collect({ |each| func.value(each) }) })
+
+To get back the wrapped object, use "unlift". See "lift" extensions for different classes.
 
 */
 
