@@ -2,8 +2,8 @@
 
 CallTree : Neutral {
 
-	var <pr_receiver, <pr_parent;
-	var <pr_selector, <pr_arguments;
+	var <pr_receiver, <pr_selector;
+	var <pr_arguments, <pr_parent;
 
 	*new { |receiver, selector, arguments, parent|
 		^super.newCopyArgs(receiver, selector, arguments, parent)
@@ -22,8 +22,9 @@ CallTree : Neutral {
 		};
 		pr_selector !? {
 			stream << "\n----->\n";
-			stream << "selector: " << pr_selector;
-			stream << "\nargs: " << pr_arguments;
+			stream << "receiver: " << pr_receiver << Char.nl;
+			stream << "selector: " << pr_selector << Char.nl;
+			stream << "args: " << pr_arguments;
 		};
 	}
 
