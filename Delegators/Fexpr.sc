@@ -389,8 +389,10 @@ Immute : Idem {
 
 /*
 
-this registers any change. alternatively, we could forward only selected changes, then it would be better to derive from ExtendibleObject and override specific methods.
+this registers any change.
 
+Alternatively, we could forward only selected changes: then it would be better to derive
+from ExtendibleObject and override only specific methods which we want to cause an update.
 
 */
 

@@ -36,15 +36,26 @@ c +.x [1, 2, 3];
 ///////////////////////////////////////////
 // lift all calls to the items of an array
 
+// the functions passes two arguments:
+// 1. receiver is the object lifted
+// 2. func is a variadic function that represents the operation of the message sent.
+// e.g. for a.neg it would be { |x| x.neg }
+// for a + b it would be { |x, y| x + y }
+
 a = Lift([1, 2, 3], { |receiver, func| receiver.collect(func) });
 a + 9; // ok, this we can also do normally
-a.dup(3); // but this is different
+
+ // but this is different
+a + [1, 2, 3];
+a.dup(3);
 a.bubble;
 a.bubble.add(8).add(10);
 a.series(5, 20);
-a.asArray // it can get a little counterintuitive.
 
-// => all in all, there is a similarity between Lift and ExtendibleObject that we could perhaps take advantage of
+ // it can get a little counterintuitive:
+a.asArray
+
+// => all in all, there is a similarity between Lift and ExtendibleObject that we could perhaps take advantage of.
 // we could add a list of selectors that are forwarded and others that are not.
 // a rather tedious way of defining this is:
 
@@ -66,11 +77,28 @@ a.bubble; //  Lift([ [ 1 ], [ 2 ], [ 3 ] ])
 
 
 
-// lift calls to an environment
+
+
+// lift calls to a dictionary
 
 f = { |receiver, func| receiver.copy.collect(func) };
 a = Lift((tables: 7, chairs: 8), f);
 a + 10 * 10 // many chairs, many tables.
+
+// lift calls to routines
+(
+d = (
+	first: Prout { loop { "first".postln; 1.yield } }.asStream,
+	second: Prout { loop { "second".postln; 0.3.yield } }.asStream,
+	third: Prout { loop { "second".postln; 2.yield } }.asStream
+);
+f = { |receiver, func| receiver.collect(func) };
+a = Lift(d, f);
+)
+
+a.play;
+a.stop;
+
 
 // the selector and args are also passed to the function
 (
@@ -85,6 +113,9 @@ f = { |receiver, func, selector, args|
 
 a = Lift((tables: 7, chairs: 8), f);
 a + 10 * 10 // many chairs, many tables.
+// the rest is forwarded:
+a.parent = (footmats: 9);
+a.parent // Lift(( 'footmats': 9 ))
 a.at(\tables) // at is forwarded.
 // arguably, in those cases we don't really want a new Lift(7)
 // also the function above is complicated.
@@ -117,19 +148,36 @@ b = [
 )
 
 b.set(\x, 1.25);
-b.release;
+b.get(\x, _.postln);
+b.set(\x, { rrand(1.0, 3) });
+b.get(\x, _.postln);
+
+c = { Out.kr(76, LFNoise2.kr(4) + 2) }.play;
+b.map(\x, 76);
+
+
+b.release(3);
+
+c.release;
 
 //////////////////////////
 
 // lifting patterns
+(
+// a pattern that returns arrays
+p = Ptuple([Pseries(1, 3, inf), Pseries(3, -1, inf), Pseries(0, 0.1, inf)]);
+a = Lift1(p, { |receiver, func| receiver.collect(func) })
+)
 
-a = Lift1(Ptuple([Pseries(1, 3, inf), Pseries(3, -1, inf), Pseries(0, 0.1, inf)]), { |receiver, func| receiver.collect(func) });
+b = a.normalizeSum.round;
 
-b = a.normalizeSum;
+b.asStream.nextN(4)
 
+
+b = a ++ -100;
 b.asStream.nextN(8)
 
+// let's say we want to convert every item in a string. The receiver of "format" is a string.
+// so we can't write format("the object is %", b), because it won't be lifted.
 
-
-
-
+//????

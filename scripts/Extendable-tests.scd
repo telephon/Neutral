@@ -7,19 +7,34 @@ a.pingolino = { |self, x, y, z| [x, y, z].postln; 999 };
 
 a.pingolino(1, 2, 3) // 999
 
+// same as addMethod:
+a.addMethod(\pingolino, { |self, x, y, z| [x, y, z].postln; 999 });
+
+// another method
 a.pongiloni = { |self, x, y, z| x + y - z };
 
-a.pingolino = { |self, x, y, z| self.pongiloni(x, y, z) }; // forward
+ // forward to the other one
+a.pingolino = { |self, x, y, z| self.pongiloni(x, y, z) };
 
 a.pingolino(10, 2, 3) // 9
 
-a.totalFree = { 1.0.rand } // exists, should throw
+// can also extend methods that exist in Object
+
+a.value = { 100.rand2 };
+a.dup = { |self, n = 2| Array.fill(n * n, self) };
+a.dup(5)
+
+// a method that exists should throw an error
+a.totalFree = { 1.0.rand }
 
 
-a = Extendable((getDict: { |self| self.pr_method_dict }));
+// make a getter for the internal method dict
+a = Extendable();
+a.getDict = { |self| self.pr_method_dict };
 a.getDict
 
 a.addMethod('+', { |self, x| x + 1 });
+a.getDict
 
 a + 2;
 2 + a;
@@ -27,9 +42,24 @@ a + 2;
 a.addMethod('performBinaryOpOnSomething', { |self, selector ... args| 1.performList(selector, args) });
 2 + a;
 
+// posts a reasonable compile string if the functions are closed
 a.asCompileString
 
-// ExtendableObject
+
+a = Extendable.new;
+// identity is not any more what it used to be, too
+a.addMethod('==', { |self, other| self !== other });
+
+a == a // false
+a == 7 // true
+7 == a // true
+
+
+
+
+
+// ExtendableObject carries an object and adds methods
+// by default, all messages are forwarded to it.
 
 a = ExtendableObject(8);
 b = ExtendableObject(7);
@@ -110,7 +140,16 @@ a + b
 ~x.test(1, 2, 3)
 ~x.object
 
+d.parent = ('%': { |self, a| self.object % a }); // inheritance structures via environment
+
+~y % ~x;
+
 a.pop;
+
+
+
+
+
 
 
 

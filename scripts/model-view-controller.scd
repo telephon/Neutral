@@ -16,9 +16,10 @@
 ~controller.put(\freq, 900);
 
 
-~controller.pr_receiver = { |freq=440| Blip.ar(freq, 20) * 0.1 }.play;
+~controller.pr_receiver = { |freq=220| Blip.ar(freq, 20) + Pulse.ar(freq)  * 0.1 }.play;
 
 ~controller.set(\freq, 34);
+~controller.set(\freq, 600);
 
 
 
