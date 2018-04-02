@@ -180,4 +180,13 @@ b.asStream.nextN(8)
 // let's say we want to convert every item in a string. The receiver of "format" is a string.
 // so we can't write format("the object is %", b), because it won't be lifted.
 
-//????
+
+b = a.flipValue("the value is % ---\n".format(_));
+b.asStream.nextN(8)
+
+
+
+
+
+
+
