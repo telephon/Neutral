@@ -4,14 +4,23 @@
 An object for prototyping. You can add and remove methods at runtime.
 This could be extended to work like James Harkin's Proto
 
+
+The object also has a behavior (pr_behavior) that can be plugged in, which implements the behavior of the placeholder.
+This schema could be moved up to AbstractObject if it is systematic.
+
 */
 
 
 Extendable : AbstractObject {
-	var <>pr_method_dict;
+	var <>pr_method_dict, <pr_behavior;
 
 	*new { |dict|
 		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
+	}
+
+	pr_behavior_ { |behavior|
+		pr_behavior = behavior;
+		behavior.pr_abstractObject = this;
 	}
 
 
@@ -25,7 +34,11 @@ Extendable : AbstractObject {
 	}
 
 	doesNotUnderstand { | selector ... args |
-		var func = this.pr_method_dict[selector];
+		var func;
+		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
+			^pr_behavior.performList(selector, args)
+		};
+		func = this.pr_method_dict[selector];
 		if (func.notNil) {
 			^func.functionPerformList(\value, this, args)
 		};
