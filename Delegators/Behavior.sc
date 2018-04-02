@@ -17,7 +17,7 @@ But it might lead toward a simple way to escape a combinatorial explosion for su
 */
 
 
-AbstractBehavior : AbstractObject {
+AbstractBehavior {
 	var <>pr_abstractObject;
 
 	*new { |abstractObject|
