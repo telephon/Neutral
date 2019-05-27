@@ -76,7 +76,21 @@ a ++ [9, 10, 22] // Lift([ 1, 2, 3, 9, 10, 22 ])
 a.bubble; //  Lift([ [ 1 ], [ 2 ], [ 3 ] ])
 
 
+(
+// lift calls to several related arrays treating them as one
+f = { |receiver, func| receiver.copy.collect(func) };
+a = Lift([
+	[3, 4, 5, 6],
+	[400, 800, 1200, 810],
+	[0.001, 0.0001, 0.02, 0.01]
+], f);
+)
 
+a.rotate(1) // rotates each
+a ++ 80 // appends 80 to each
+a.put(2, "hello, I'm here"); // puts a value in each
+a.copy.put(2, "...");
+a
 
 
 // lift calls to a dictionary
