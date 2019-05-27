@@ -24,6 +24,8 @@ a.value = { 100.rand2 };
 a.dup = { |self, n = 2| Array.fill(n * n, self) };
 a.dup(5)
 
+
+
 // a method that exists should throw an error
 a.totalFree = { 1.0.rand }
 
@@ -36,11 +38,10 @@ a.getDict
 a.addMethod('+', { |self, x| x + 1 });
 a.getDict
 
+// double dispatch for binary operators
 a + 2;
 2 + a;
 
-a.addMethod('performBinaryOpOnSomething', { |self, selector ... args| 1.performList(selector, args) });
-2 + a;
 
 // posts a reasonable compile string if the functions are closed
 a.asCompileString
