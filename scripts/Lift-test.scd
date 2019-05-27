@@ -110,6 +110,9 @@ f = { |receiver, func| receiver.collect(func) };
 a = Lift(d, f);
 )
 
+b = a.asStream;
+b.next;
+
 a.play;
 a.stop;
 
