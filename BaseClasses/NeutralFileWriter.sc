@@ -2,7 +2,7 @@
 NeutralizeObject {
 
 	*initClass {
-		this.write(\Neutral.asClass, this.neutralExcludeSelectors)
+		this.write(\Neutral.asClass, this.neutralExcludeSelectors);
 	}
 
 
@@ -15,6 +15,11 @@ NeutralizeObject {
 		path = path ?? {
 			extDir = Platform.userExtensionDir.standardizePath +/+ "NeutralObjectExtensions";
 			if(pathMatch(extDir).isEmpty) { File.mkdir(extDir) };
+			if(LanguageConfig.includePaths.includesEqual(extDir).not) {
+				"The extension directory is not included in LanguageConfig.includePaths. "
+				"Please either write the extension to an included path "
+				"or include the extension directory".warn;
+			};
 			extDir +/+ "ext" ++ class.name ++ ".sc"
 		};
 
