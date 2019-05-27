@@ -35,6 +35,7 @@ Extendable : AbstractObject {
 
 	doesNotUnderstand { | selector ... args |
 		var func;
+		This.callContext = this;
 		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
 			^pr_behavior.performList(selector, args)
 		};
@@ -45,6 +46,7 @@ Extendable : AbstractObject {
 		if (selector.isSetter) {
 			^this.addMethod(selector, args[0])
 		};
+		This.callContext = nil;
 		^this.pr_forwardToReceiver(selector, args)
 	}
 
@@ -207,6 +209,22 @@ Halo2 : AbstractObject {
 	/*
 	question: should two equal objects with different halos be equal?
 	*/
+
+}
+
+/*
+
+access local call context
+
+*/
+
+This {
+
+	classvar <>callContext;
+
+	*new {
+		^callContext
+	}
 
 }
 
