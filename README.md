@@ -27,7 +27,7 @@ For a proper implementation, one would probably need to have an optimisation of 
 
 Also it is open how primitives will respond correctly to arguments that are `AbstractObjects`.
 
-A parzicular case is `envirPut` and `envirGet`, primitives that call methods of the base class, so they won't work smoothly with an [environment wrapped in a delegator](https://scsynth.org/t/is-there-an-order-preserving-environment-quark/1881/17)
+A particular case is `envirPut` and `envirGet`, primitives that call methods of the base class, so they won't work smoothly with an [environment wrapped in a delegator](https://scsynth.org/t/is-there-an-order-preserving-environment-quark/1881/17)
 
 
 ### Appendix
