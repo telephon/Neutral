@@ -23,9 +23,11 @@ This Quark contains a lot of experimental applications for `AbstractObject`, but
 
 For a proper implementation, one would probably need to have an optimisation of message forwarding, so that the overhead of wrapping is low.
 
-The only message that I found which can't be properly treated in this way because the interpreter optimises it before it become a proper call is **`if`** (see https://github.com/supercollider/supercollider/issues/3567). So for `if` one would need a change.
+[The only message that I found which can't be properly treated in this way, because the interpreter optimises it before it become a proper call, is `if`](https://github.com/supercollider/supercollider/issues/3567). So for `if` one would need a change.
 
-Also it is open how primitives will respond correctly to arguments that are `AbstractObjects`
+Also it is open how primitives will respond correctly to arguments that are `AbstractObjects`.
+
+A parzicular case is `envirPut` and `envirGet`, primitives that call methods of the base class, so they won't work smoothly with an [environment wrapped in a delegator](https://scsynth.org/t/is-there-an-order-preserving-environment-quark/1881/17)
 
 
 ### Appendix
