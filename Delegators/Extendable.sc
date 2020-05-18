@@ -5,7 +5,8 @@ An object for prototyping. You can add and remove methods at runtime.
 This could be extended to work like James Harkin's Proto
 
 
-The object also has a behavior (pr_behavior) that can be plugged in, which implements the behavior of the placeholder.
+The object also has a behavior (pr_behavior) that can be plugged in,
+which implements the behavior of the placeholder.
 This schema could be moved up to AbstractObject if it is systematic.
 
 */
@@ -35,12 +36,16 @@ Extendable : AbstractObject {
 
 	doesNotUnderstand { | selector ... args |
 		var func;
-		This.callContext = this;
+		This.callContext = this; // allow direct access to "this"
 		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
 			^pr_behavior.performList(selector, args)
 		};
 		func = this.pr_method_dict[selector];
 		if (func.notNil) {
+			// it would be possible to omit the "this" argument
+			// and use the This instead. Need to check what looks better.
+			// even better in a future implementation would be that we can call "this"
+			// from normal functions and receive the extendable object
 			^func.functionPerformList(\value, this, args)
 		};
 		if (selector.isSetter) {
@@ -54,6 +59,12 @@ Extendable : AbstractObject {
 		^this.doesNotUnderstand(selector, thing, adverb)
 	}
 
+	performWithEnvir { |selector, envir|
+		// needs a bit of care, because here
+		// the argNames are not in the class/method, but in the function
+		^this.notYetImplemented(thisMethod)
+	}
+
 	pr_forwardToReceiver { |selector, args|
 		^this.superPerformList(\doesNotUnderstand, selector, args)
 	}
@@ -65,6 +76,7 @@ Extendable : AbstractObject {
 	respondsTo { |selector|
 		^super.respondsTo(selector) or: { this.pr_method_dict.at(selector).notNil }
 	}
+
 
 	// doesn't work yet, because equality of functions is not defined in the standard implementation
 	// but that could be added later.
@@ -99,7 +111,7 @@ ExtendableObject : Extendable {
 	var <>object;
 
 	*new { |object, dict|
-		^super.newCopyArgs(dict ?? { IdentityDictionary.new }, object)
+		^super.new(dict).object_(object)
 	}
 
 	reverseDoesNotUnderstand { | selector, what ... args |
@@ -151,6 +163,7 @@ ExtendableObject : Extendable {
 
 
 }
+
 
 MethodEnvir : EnvironmentRedirect {
 	var <>method_dict;

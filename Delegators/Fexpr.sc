@@ -24,6 +24,18 @@ Note that for clarity, this class hierarchy spreads out a number of feature that
 
 
 
+/*
+
+
+TODO:
+
+make a CurriedObject, and CurriedFunction, where you can call methods with fewer arguments and it returns a partially evaluated object. The object keeps the arguments that have been called so far in an array (or in an environment).
+
+There might be a switch between values that have default arguments and those who haven't. For CurriedFunction this is easy.
+
+*/
+
+
 
 
 
@@ -35,7 +47,11 @@ AbstractObject does support binary op dispatch, like Object.
 
 AbstractObject : Neutral {
 
-	classvar pr_responding_selectors;
+	classvar <pr_responding_selectors;
+
+	/*
+	dispatching all these is not the most efficient way, but allows to treat binary operators in a single place
+	*/
 
 	performBinaryOpOnSimpleNumber { | aSelector, thing, adverb |
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
@@ -59,10 +75,25 @@ AbstractObject : Neutral {
 
 	respondsTo { |selector|
 		// this is slow. A primitive version can make this faster
-		if(pr_responding_selectors.isNil) {
-			pr_responding_selectors = this.class.overriddenMethodSelectors.as(IdentitySet);
-		};
+		// need to think this through more carefully.
+		this.pr_init_respondingSelectors;
 		^super.respondsTo(selector) and: { pr_responding_selectors.includes(selector).not }
+	}
+
+	pr_init_respondingSelectors {
+		if(pr_responding_selectors.isNil) {
+
+			// \overriddenMethodSelectors is written into the NeutralObjectExtensions extension
+			// of the Neutral class
+
+			if(this.class.respondsTo(\overriddenMethodSelectors)) {
+				pr_responding_selectors = this.class.overriddenMethodSelectors.as(IdentitySet)
+			} {
+				"Probably, the Neutral class hasn't been initialised correctly. You may want to check"
+				"if the extension directory is included in the language configuration".warn;
+				pr_responding_selectors = IdentitySet.new;
+			}
+		};
 	}
 
 }
@@ -119,6 +150,10 @@ Provide a function that is called for each message receipt.
 
 To get back the wrapped object, use "unlift". See "lift" extensions for different classes.
 
+TODO: binary ops just call pr_function, but we may want a proper double dispatch:
+1. wrap receiver in a Lift with the same function
+2. then call the selector on the new Lift (we expect that the ops are symmetric)
+
 */
 
 Lift1 : AbstractDelegator {
@@ -132,23 +167,34 @@ Lift1 : AbstractDelegator {
 		^this.pr_receiver
 	}
 
+	// examples (see Lift-test)
+
 	doesNotUnderstand { | selector ... args |
-		^this.pr_function.value(
-			this.pr_receiver,
-			{ |x| x.performList(selector, args) },
-			selector,
-			args
-		)
+		var receiverFunction = this.pr_function;
+		// actually, this line below is maybe not such a good idea.
+		// it breaks some examples.
+		// need to check for the position of the selector argument in the function
+		// oblige to use "selector" as a name
+		// and count what comes before?
+		// all this needs to be done when the lift is created.
+
+		var nargs = max(0, receiverFunction.def.argNames.size - 2);
+		var messageArgs = args.drop(nargs);
+		var functionArgs = args.keep(nargs).extend(nargs, nil);
+		var defaultArgs = receiverFunction.def.prototypeFrame;
+		var func = { |x| x.performList(selector, messageArgs) }; // for result call function with receiver
+
+		// add defaults and compose arguments
+		// the function is called with these arguments:
+		// receiver, arg1, ..., func, selector, messageArgs
+		functionArgs = functionArgs.collect { |x, i| x ?? { defaultArgs.at(i + 1) } }; // first is receiver
+		functionArgs = [this.pr_receiver] ++ functionArgs ++ [func, selector] ++ messageArgs;
+
+		^receiverFunction.valueArray(functionArgs)
 	}
 
 	performBinaryOpOnSomething { | selector, thing, adverb |
-		var args = [thing] ++ adverb;
-		^this.pr_function.value(
-			this.pr_receiver,
-			{ |x| x.performList(selector, args) },
-			selector,
-			args
-		)
+		^this.perform(selector, thing, adverb)
 	}
 
 	storeOn { |stream|
@@ -173,10 +219,11 @@ Lift : Lift1 {
 
 	doesNotUnderstand { | selector ... args |
 		var func = this.pr_function;
+		var messageArgs = args.drop(this.pr_num_prepended_arguments);
 		^this.class.new(
 			func.value(
-				this.pr_receiver,
-				{ |x| x.performList(selector, args) },
+				this.pr_receiver, // receiver
+				{ |x| x.performList(selector, messageArgs) }, // for result call function with receiver
 				selector,
 				args
 			),
@@ -184,6 +231,71 @@ Lift : Lift1 {
 		)
 	}
 }
+
+/*
+
+automap operators over collections at a given depth
+also call the selector on any object above the given level
+
+*/
+
+Each : AbstractDelegator {
+	var <>pr_level = 1;
+
+	doesNotUnderstand { | selector ... args |
+		var f, result;
+		f = { |level, val|
+			if(level < 1 or: { val.isCollection.not }) { // isCollection is debatable.
+				//[\call, val, \level, level].postln;
+				val.performList(selector, args)
+			} {
+				//[\collect, val, \level, level].postln;
+				val.collect { |x|
+					f.(level - 1, x)
+				}
+			}
+		};
+		result = f.(pr_level, pr_receiver);
+		^this.class.new(result)
+	}
+
+	lift { |n=1|
+		^this.class.new(pr_receiver).pr_level_(this.pr_level + 1)
+	}
+
+}
+
+
+/*
+
+sometimes we just want to use Nil as a soft sign of failure and pass it on
+
+*/
+
+MaybeNil : Lift {
+
+	*new { |receiver|
+		^super.new(receiver, { |x, func| if(x.notNil) { func.(x) } })
+	}
+
+}
+
+/*
+
+We may want to keep a handle on an internal object of some object
+
+*/
+
+Peek : Lift1 {
+
+	*new { |receiver, instVarName|
+		^super.new(receiver, {  |receiver, func|
+			func.value(receiver.instVarAt(instVarName))
+		})
+	}
+
+}
+
 
 
 /*
@@ -435,7 +547,6 @@ Dependants : AbstractDelegator {
 
 
 }
-
 
 
 

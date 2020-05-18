@@ -33,6 +33,53 @@ c +.x [1, 2, 3];
 [1, 2, 3] +.t c
 
 
+/// maybe nil
+
+a = Lift(8, { |x, f| if(x.notNil) { f.(x) } });
+a + 9
+9 + a
+a = Lift(nil, { |x, f| if(x.notNil) { f.(x) } });
+a + 9
+9 + a
+
+// this is also here:
+a = MaybeNil(8);
+a + 4
+4 + a
+a = MaybeNil(nil)
+a + 4 + 10
+4 + a + 10
+
+
+///////////////////////////////////////////
+// lift is useful if you want an object XXX
+
+// an infinite sequence won't allow certain operations, like reverse or mirror
+
+(
+g = { |seq|
+	Lift1(seq, { |receiver, n = 3, func| // func calls the selector on the first argument
+			receiver.clump(n).collect(func).flatten(1)
+		})
+	};
+)
+
+a = g.(Pseries.new);
+a.mirror.asStream.nextN(16)
+
+// the n of clump(n) is the first argument
+a.mirror(4).asStream.nextN(16)
+a.mirror(2).asStream.nextN(16)
+a.pyramid(3).asStream.nextN(16)
+
+// the pattern type is now the second argument:
+a.pyramid(3, 2).asStream.nextN(16)
+a.pyramid(3, 3).asStream.nextN(16)
+
+
+
+
+
 ///////////////////////////////////////////
 // lift all calls to the items of an array
 

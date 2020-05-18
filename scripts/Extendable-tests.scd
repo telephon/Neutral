@@ -109,6 +109,33 @@ a.play(\x, \freq, 20);
 a.stop(\x);
 
 
+a = List.new.addMethod(\plock, { |self, a, b, c| self.object.addAll([a, b, c]) });
+a.plock(1, 2, 3);
+
+
+// this doesn't work yet, but can
+// be relatively easily implemented
+(
+x = Environment.make {
+	~a = 9;
+	~b = 10;
+	~c = 100;
+};
+a.performWithEnvir(\plock, x);
+)
+
+
+// testing the use of "This" as an access to the local call context
+// maybe "self" is clearer in the end?
+
+a = a.addMethod(\whatIsThis, { This() });
+a.whatIsThis
+
+a = a.addMethod(\anotherAdd, { |self, x| This().add(x) });
+a.anotherAdd(1956);
+
+
+
 // MethodEnvir
 (
 d = (
@@ -200,6 +227,14 @@ a.addHalo(\data, { "yes" });
 a.getHalo(\data);
 
 a.getHalo(\data).value;
+
+
+ // now this is still addHalo2 (not to collide with addHalo from JITLibExtensions)
+
+a = 7.addHalo2(\data, 0.003);
+a + 100;
+a.getHalo(\data);
+
 
 
 // Idiot: returns always just itself

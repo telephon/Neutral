@@ -35,13 +35,20 @@ optional extensions to make the use of Lift more convenient
 }
 
 
-/*
+
+
++ Object {
+
+
+	peek { |instVarName|
+		^Peek(this, instVarName)
+	}
+
+	/*
 
 this extension is debatable, because unlift can't be lifted itself. But I think this is ok.
 
 */
-
-+ Object {
 
 	unlift {
 		^this
