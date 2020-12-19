@@ -1,3 +1,9 @@
+/*
+
+`if` is the only control structure that can't be overridden currently
+
+*/
+
 
 (
 a = Extendable.new;
@@ -17,5 +23,7 @@ while(a, true, { "running".scramble.postln });
 loop(a, {  "running".scramble.postln });
 switch(a, 0, { "found myself" }, 3, { "found 3" }, "nothing");
 if(a, { "chose this way" }, { "chose that way" }); // breaks
+
+
 
 

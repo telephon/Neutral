@@ -1,3 +1,11 @@
+/*
+
+Lift is a simple to use class for various purposes
+It has one function that will be called on every method call
+
+
+*/
+
 
 // a simple post function: post every transition
 
@@ -51,8 +59,8 @@ a + 4 + 10
 4 + a + 10
 
 
-///////////////////////////////////////////
-// lift is useful if you want an object XXX
+//////////////////////////////////////////////////////
+// lift is useful if you want to complete an interface
 
 // an infinite sequence won't allow certain operations, like reverse or mirror
 
@@ -247,6 +255,31 @@ b.asStream.nextN(8)
 
 b = a.flipValue("the value is % ---\n".format(_));
 b.asStream.nextN(8)
+
+
+/////////////////////////
+/*
+
+Each calls every message on all the receivers elements
+
+*/
+
+a = Each([10, 2, 3]);
+a + 5
+a + [0.1, 0.2, 0.3];
+
+
+a = Each([[10, 20], [1, 2]]);
+a + 5
+a + [0.1, 0.2, 0.3];
+
+a = Each([[10, 20], [1, 2]]).lift;
+a + 5
+a + [0.1, 0.2, 0.3];
+
+a = Each([[10, [20, [100, 120]]], 1, 2]).lift(2);
+a + 5
+a + [0.1, 0.2, 0.3];
 
 
 

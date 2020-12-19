@@ -1,3 +1,14 @@
+/*
+
+A Delegator keeps the responsibility for updating with its object
+Therefore, no certralised storage is neccessary
+
+Every message to the receiver will cause an update.
+This allows us a better separation of concerns, because the receiver doesn't have to know what the dependant is interested in. So there is no need for a "changed" message.
+
+
+*/
+
 
 
 ~controller = Dependants((freq: 440));
@@ -16,12 +27,13 @@
 ~controller.put(\freq, 900);
 
 
-~controller.pr_receiver = { |freq=220| Blip.ar(freq, 20) + Pulse.ar(freq)  * 0.1 }.play;
+
+~controller = Dependants({ |freq=70| Blip.ar(freq, 16) + Pulse.ar(freq)  * 0.1 }.play);
+~controller.addDependant(~obj1);
+~controller.addDependant(~obj2);
 
 ~controller.set(\freq, 34);
 ~controller.set(\freq, 600);
-
-
 
 
 
