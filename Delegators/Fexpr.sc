@@ -159,6 +159,9 @@ TODO: binary ops just call pr_function, but we may want a proper double dispatch
 Lift1 : AbstractDelegator {
 	var <>pr_function;
 
+	// the function is called with these arguments:
+	// receiver, arg1, ..., func, selector, messageArgs
+
 	*new { |receiver, function|
 		^super.newCopyArgs(receiver, function)
 	}
@@ -170,7 +173,12 @@ Lift1 : AbstractDelegator {
 	// examples (see Lift-test)
 
 	doesNotUnderstand { | selector ... args |
+		var nargs, messageArgs, functionArgs, defaultArgs, func;
+
 		var receiverFunction = this.pr_function;
+
+		if(receiverFunction.isNil) { Error("no lift without a function").throw };
+
 		// actually, this line below is maybe not such a good idea.
 		// it breaks some examples.
 		// need to check for the position of the selector argument in the function
@@ -178,11 +186,11 @@ Lift1 : AbstractDelegator {
 		// and count what comes before?
 		// all this needs to be done when the lift is created.
 
-		var nargs = max(0, receiverFunction.def.argNames.size - 2);
-		var messageArgs = args.drop(nargs);
-		var functionArgs = args.keep(nargs).extend(nargs, nil);
-		var defaultArgs = receiverFunction.def.prototypeFrame;
-		var func = { |x| x.performList(selector, messageArgs) }; // for result call function with receiver
+		nargs = max(0, receiverFunction.def.argNames.size - 2);
+		messageArgs = args.drop(nargs);
+		functionArgs = args.keep(nargs).extend(nargs, nil);
+		defaultArgs = receiverFunction.def.prototypeFrame;
+		func = { |x| x.performList(selector, messageArgs) }; // for result call function with receiver
 
 		// add defaults and compose arguments
 		// the function is called with these arguments:
@@ -219,16 +227,8 @@ Lift : Lift1 {
 
 	doesNotUnderstand { | selector ... args |
 		var func = this.pr_function;
-		var messageArgs = args.drop(this.pr_num_prepended_arguments);
-		^this.class.new(
-			func.value(
-				this.pr_receiver, // receiver
-				{ |x| x.performList(selector, messageArgs) }, // for result call function with receiver
-				selector,
-				args
-			),
-			func,
-		)
+		var value = this.superPerformList(\doesNotUnderstand, selector, args);
+		^this.class.new(value, func)
 	}
 }
 
