@@ -36,6 +36,9 @@ Extendable : AbstractObject {
 
 	doesNotUnderstand { | selector ... args |
 		var func;
+		if(pr_method_dict[\doesNotUnderstand].notNil) {
+			^pr_method_dict[\doesNotUnderstand].functionPerformList(\value, this, selector, *args)
+		};
 		This.callContext = this; // allow direct access to "this"
 		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
 			^pr_behavior.performList(selector, args)
@@ -60,9 +63,21 @@ Extendable : AbstractObject {
 	}
 
 	performWithEnvir { |selector, envir|
-		// needs a bit of care, because here
-		// the argNames are not in the class/method, but in the function
-		^this.notYetImplemented(thisMethod)
+
+		// this is a raw implementetion, need to check pr_behavior later
+		var func = pr_method_dict[selector];
+		var firstArgName;
+		This.callContext = this; // allow direct access to "this"
+		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
+			^pr_behavior.performWithEnvir(selector, envir)
+		};
+		^if(func.notNil) {
+			firstArgName = func.def.argNames.first;
+			if(firstArgName.notNil) { envir = envir.copy.put(firstArgName, this) };
+			func.valueWithEnvir(envir)
+		} {
+			super.performWithEnvir(selector, envir)
+		}
 	}
 
 	pr_forwardToReceiver { |selector, args|
@@ -128,6 +143,18 @@ ExtendableObject : Extendable {
 
 	pr_forwardToReceiver { |selector, args|
 		^this.object.performList(selector, args)
+	}
+
+	performWithEnvir { |selector, envir|
+		var func = this.pr_method_dict[selector];
+		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
+			^pr_behavior.performWithEnvir(selector, envir)
+		};
+		^if(func.notNil) {
+			this.superPerform(\performWithEnvir, selector, envir)
+		} {
+			object.performWithEnvir(selector, object)
+		}
 	}
 
 	copy {
