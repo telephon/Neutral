@@ -33,6 +33,9 @@ a.value = { 10.rand2 };
 a.dup = { |self, n = 2| Set.fill(n, self) };
 a.dup(5)
 
+// performWithEnvir
+a.performWithEnvir(\pongiloni, (x: 8, y: 9, z: -3));
+
 
 /*
 
@@ -74,6 +77,38 @@ a == 7 // true
 7 == a // true
 
 a === a // but this is still true, if you need it.
+
+
+
+// normally, these methods do not allow for keyword arguments
+
+a = Extendable.new;
+a.addMethod(\plop, { |self, freq = 440, amp = 0.1| [freq, amp] });
+
+a.plop(700, 0.2);
+a.plop(amp: 0.2); // WARNING: keyword arg 'amp' not found in call to Extendable:doesNotUnderstand
+
+// it is possible, however, to wrap the call:
+
+(
+b = ExtendableObject(a,
+	(
+		doesNotUnderstand: { |self, selector, dict ... args|
+			[selector, dict].postln;
+			if(args.notEmpty or: { dict.isKindOf(Dictionary).not }) {
+				Error("this method requires all arguments passed as a dictionary").throw
+			} {
+				self.object.performWithEnvir(selector, dict)
+			}
+		}
+	)
+);
+)
+
+b.plop((amp: 4.4));
+b.plop((freq: 1000));
+
+
 
 
 

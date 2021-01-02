@@ -42,6 +42,7 @@ b.call
 /*
 
 Immute keeps its object unmuted and always returns copies
+(copy on write)
 
 */
 
@@ -51,10 +52,20 @@ Immute keeps its object unmuted and always returns copies
 // immute
 
 x = [1, 2, 3];
-a = Immute(x);
-b = a.put(1, 1000);
-b.call
+a = Immute(x); // protect a
+a.put(1, 1000); // put something into the protected a
+a // still the same
 x == [1, 2, 3] // still [1, 2, 3]
+
+b = a.put(1, 1000); // keep the result of the operation
+b // b is the changed result of a
+b.call // get the source
+
+a = Immute((f: 9, g: 10));
+b = a.put(\f, 100);
+a
+
+// like this one could build optimised immutable dictionaries like the ones in closure
 
 
 

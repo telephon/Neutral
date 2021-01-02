@@ -46,6 +46,8 @@ a + 6 == 14 // yes
 
 
 
+
+
 a = ExtendableObject({ |freq| Blip.ar(freq) * 0.2 });
 a.play = { |self, name ... args| Ndef(name, self.object).set(*args).play };
 a.stop = { |self, name| Ndef(name).end };
@@ -59,8 +61,7 @@ a = List.new.addMethod(\plock, { |self, a, b, c| self.object.addAll([a, b, c]) }
 a.plock(1, 2, 3);
 
 
-// this doesn't work yet, but can
-// be relatively easily implemented
+// performWithEnvir
 (
 x = Environment.make {
 	~a = 9;
