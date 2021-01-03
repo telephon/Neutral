@@ -57,11 +57,14 @@ a.play(\x, \freq, 20);
 a.stop(\x);
 
 
-a = List.new.addMethod(\plock, { |self, a, b, c| self.object.addAll([a, b, c]) });
-a.plock(1, 2, 3);
-
 
 // performWithEnvir
+
+
+a = List.new.addMethod(\plock, { |self, a, b, c| self.object.addAll([a, b, c]) });
+a.plock(1, 2, 3);
+a.plock(1, 2, 3);
+
 (
 x = Environment.make {
 	~a = 9;
@@ -129,30 +132,61 @@ a.pop;
 // more useful direction, perhaps:
 // hack into any object, e.g. the server
 
-Server.default = s = ExtendableObject(Server.default);
+Server.default = ExtendableObject(Server.default);
 
-// just redirect this message.
-s.addMethod(\sendMsg, { |self ... args| self.object.sendMsg(*args); ~visualize.(args); });
-s.addMethod(\sendBundle, { |self ... args| self.object.sendBundle(*args);  ~visualize.(args[1]); });
+
+// redirect OSC messages
+// and add a callback
+(
+s.addMethod(\callback, { |self, args| "callback\n-----\n%\n-----\n".postf(args) });
+s.addMethod(\sendMsg, { |self ... args|
+	self.object.sendMsg(*args);
+	self.callback(args);
+});
+s.addMethod(\sendBundle, { |self ... args|
+	self.object.sendBundle(*args);
+	self.callback(args[1]);
+});
+)
+
+// test
+(instrument: \default, freq: 500).play;
+
 
 
 // visualize any outgoing message that has a freq parameter
 (
-var w = Window("").front;
-var f = { |freq| sin(freq) * 0.3 + 0.5 };
-~visualize = { |args|
-	var foundAt, freq;
-	foundAt = args.indexOf(\freq);
-	foundAt !? {
-		freq = args[foundAt + 1];
-		AppClock.sched(s.latency, {
-			w.view.background = Color(f.(freq), f.(freq + 0.3), f.(freq + 0.553));
-			nil
-		})
-	};
+~makeWindow = {
+	var w = Window("", Rect(600, 600, 150, 150)).front;
+	var f = { |freq| sin(freq) * 0.3 + 0.5 };
+	s.addMethod(\callback, { |self, args|
+		var foundAt, freq;
+		foundAt = args.indexOf(\freq);
+		foundAt !? {
+			freq = args[foundAt + 1];
+			AppClock.sched(s.latency, {
+				w.view.background = Color(f.(freq), f.(freq + 0.3), f.(freq + 0.553));
+				nil
+			})
+		};
+	});
+	w.onClose = { ~visualize = nil };
+	w
 };
-w.onClose = { ~visualize = nil };
 )
 
 
-Pdef(\x, Pbind(\degree, Pseq([0, 1, 6, 7, 1, Prand([2, 5, 3], 2).stutter(9), 4], inf), \dur, 0.1)).play;
+(
+var p;
+~window = ~makeWindow.value;
+p = Pbind(\degree, Pseq([0, 1, 6, 7, 1, Prand([2, 5, 3], 2).stutter(9), 4], inf), \dur, 0.3);
+Pdef(\x, Ptpar([0, p, 0.3, p, 0.5, p])).play;
+~window.onClose = { Pdef(\x).stop };
+)
+
+
+// restore default server
+Server.default = s = Server.default.object;
+
+
+
