@@ -7,6 +7,8 @@ This could be extended to work like James Harkin's Proto
 
 The object also has a behavior (pr_behavior) that can be plugged in,
 which implements the behavior of the placeholder.
+When setting the Behavior, its internal reference is set to this.
+
 This schema could be moved up to AbstractObject if it is systematic.
 
 */
@@ -36,10 +38,10 @@ Extendable : AbstractObject {
 
 	doesNotUnderstand { | selector ... args |
 		var func;
+		This.callContext = this; // allow direct access to "this"
 		if(pr_method_dict[\doesNotUnderstand].notNil) {
 			^pr_method_dict[\doesNotUnderstand].functionPerformList(\value, this, selector, *args)
 		};
-		This.callContext = this; // allow direct access to "this"
 		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
 			^pr_behavior.performList(selector, args)
 		};
