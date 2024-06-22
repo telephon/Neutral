@@ -74,6 +74,10 @@ AbstractObject : Neutral {
 	}
 
 	respondsTo { |selector|
+		^this.pr_respondsTo(selector)
+	}
+
+	pr_respondsTo { |selector|
 		// this is slow. A primitive version can make this faster
 		// need to think this through more carefully.
 		this.pr_init_respondingSelectors;
