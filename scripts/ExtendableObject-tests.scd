@@ -34,6 +34,8 @@ a.totalFree = { 1.0.rand }; // exists, should throw
 a.addMethod('+', { pi }); // override
 
 a + 6 == pi // yes
+6 + a == pi // also, yes.
+
 
 a.addMethod('+', { |self, y| self.object + y });
 
