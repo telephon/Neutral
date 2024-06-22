@@ -11,6 +11,12 @@ using `addMethod`
 
 a = Extendable.new;
 
+// responds to nothing
+// correctly throws "not understood" errors:
+a.play
+a.free
+a.asArray
+
 // add a new method, the first argument is the object itself
 a.pingolino = { |self, x, y, z| [x, y, z].postln; 999 };
 

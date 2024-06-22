@@ -118,6 +118,7 @@ Extendable : AbstractObject {
 
 }
 
+
 /*
 
 A delegator that allows to add and override methods to an object
@@ -194,6 +195,9 @@ ExtendableObject : Extendable {
 }
 
 
+
+
+
 MethodEnvir : EnvironmentRedirect {
 	var <>method_dict;
 
@@ -251,6 +255,51 @@ Halo2 : AbstractObject {
 	/*
 	question: should two equal objects with different halos be equal?
 	*/
+
+}
+
+
+/*
+
+A delegator that allows to add and override methods to an object,
+but isolates the interface by only allowing the methods it has added
+
+*/
+
+Isolator : AbstractObject {
+	var object, pr_selectorConditions;
+
+	*new { |object, selectorConditions|
+		^super.newCopyArgs(object, selectorConditions ?? { IdentityDictionary.new })
+	}
+
+	allowSelector { |selector, condition = true|
+		pr_selectorConditions.put(selector, condition)
+	}
+
+	blockSelector { |selector|
+		pr_selectorConditions.removeAt(selector)
+	}
+
+	doesNotUnderstand { | selector ... args |
+		this.pr_check_access(selector, args);
+		^object.performList(selector, args)
+	}
+
+	performBinaryOpOnSomething { |selector, receiver, adverb|
+		this.pr_check_access(selector, [receiver, adverb]);
+		^receiver.performList(selector, object, adverb);
+	}
+
+	pr_check_access { |selector, arglist|
+		var condition = pr_selectorConditions.at(selector);
+		var allow = condition.value(object, *arglist);
+		if(allow !== true) {
+			Error("Object (%) is isolated, so the message '%', could not be called.".format(object, selector)).throw
+		}
+
+	}
+
 
 }
 
