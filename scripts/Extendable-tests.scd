@@ -18,20 +18,22 @@ a.free
 a.asArray
 
 // add a new method, the first argument is the object itself
-a.pingolino = { |self, x, y, z| [x, y, z].postln; 999 };
+a.kuchen = { |self, x, y, z| [x, y, z].postln; 999 };
 
-a.pingolino(1, 2, 3) // 999
+a.kuchen(1, 2, 3) // 999
 
 // same as addMethod:
-a.addMethod(\pingolino, { |self, x, y, z| [x, y, z].postln; 999 });
+a.addMethod(\kuchen, { |self, x, y, z| [x, y, z].postln; 999 });
+
+a.kuchen(1, 2, 3) // 999
 
 // another method
-a.pongiloni = { |self, x, y, z| x + y - z };
+a.nockerl = { |self, x, y, z| x + y - z };
 
  // forward to the other one
-a.pingolino = { |self, x, y, z| self.pongiloni(x, y, z) };
+a.kuchen = { |self, x, y, z| [self, x, y, z].postln; self.nockerl(x, y, z) };
 
-a.pingolino(10, 2, 3) // 9
+a.kuchen(10, 2, 3) // 9
 
 // unlike addMethod, this can also extend methods that already exist in Object
 
@@ -40,7 +42,7 @@ a.dup = { |self, n = 2| Set.fill(n, self) };
 a.dup(5)
 
 // performWithEnvir
-a.performWithEnvir(\pongiloni, (x: 8, y: 9, z: -3));
+a.performWithEnvir(\nockerl, (x: 8, y: 9, z: -3)); // 20
 
 
 /*
@@ -89,10 +91,10 @@ a === a // but this is still true, if you need it.
 // normally, these methods do not allow for keyword arguments
 
 a = Extendable.new;
-a.addMethod(\plop, { |self, freq = 440, amp = 0.1| [freq, amp] });
+a.addMethod(\nudel, { |self, freq = 440, amp = 0.1| [freq, amp] });
 
-a.plop(700, 0.2);
-a.plop(amp: 0.2); // WARNING: keyword arg 'amp' not found in call to Extendable:doesNotUnderstand
+a.nudel(700, 0.2);
+a.nudel(amp: 0.2); // WARNING: keyword arg 'amp' not found in call to Extendable:doesNotUnderstand
 
 // it is possible, however, to wrap the call:
 
@@ -111,8 +113,8 @@ b = ExtendableObject(a,
 );
 )
 
-b.plop((amp: 4.4));
-b.plop((freq: 1000));
+b.nudel((amp: 4.4));
+b.nudel((freq: 1000));
 
 
 

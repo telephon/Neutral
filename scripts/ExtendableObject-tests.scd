@@ -19,7 +19,7 @@ b - a == -1;
 
 
 
-a.zeta = { |self, y = 1| self.object * y };
+a.zeta = { |self, y = 1| "y: %".format(y).postln; self.object * y };
 
 a.zeta // 8
 
@@ -64,8 +64,8 @@ a.stop(\x);
 
 
 a = List.new.addMethod(\plock, { |self, a, b, c| self.object.addAll([a, b, c]) });
-a.plock(1, 2, 3);
-a.plock(1, 2, 3);
+a.plock(1, 2, 3); // List[1, 2, 3]
+a.plock(1, 2, 3); // List[1, 2, 3, 1, 2, 3]
 
 (
 x = Environment.make {
@@ -73,7 +73,7 @@ x = Environment.make {
 	~b = 10;
 	~c = 100;
 };
-a.performWithEnvir(\plock, x);
+a.performWithEnvir(\plock, x); //  List[1, 2, 3, 1, 2, 3, 9, 10, 100]
 )
 
 
@@ -112,18 +112,17 @@ a = MethodEnvir(d).push;
 a[\x] + a[\y]
 
 
-a = ExtendableObject(9).addMethod('+', { |self, a| self.object + a + 0.1.rand2 });
-b = ExtendableObject(10).addMethod('+', { |self, a| self.object + a + 0.1.rand2 });
-a + b
+k = ExtendableObject(9).addMethod('+', { |self, a| self.object + a + 0.1.rand2 });
+u = ExtendableObject(10).addMethod('+', { |self, a| self.object + a + 0.1.rand2 });
+k + u
 
-0
 
-~x.test(1, 2, 3)
-~x.object
+~x.test(1, 2, 3) // [9, 1, 2, 3]
+~x.object // 9
 
 d.parent = ('%': { |self, a| self.object % a }); // inheritance structures via environment
 
-~y % ~x;
+(~y + 4) % ~x; // 5.0177 or similar
 
 a.pop;
 
@@ -185,7 +184,6 @@ p = Pbind(\degree, Pseq([0, 1, 6, 7, 1, Prand([2, 5, 3], 2).stutter(9), 4], inf)
 Pdef(\x, Ptpar([0, p, 0.3, p, 0.5, p])).play;
 ~window.onClose = { Pdef(\x).stop };
 )
-
 
 // restore default server
 Server.default = s = Server.default.object;
