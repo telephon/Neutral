@@ -176,18 +176,18 @@ Lift1 : AbstractDelegator {
 
 	// examples (see Lift-test)
 
-	doesNotUnderstand { | selector ... args |
+	doesNotUnderstand { | selector ... args, kwargs |
 		var nargs, functionArgs, selectorFunc;
 
 		var receiverFunction = this.pr_function;
 
 		if(receiverFunction.isNil) { Error("no lift without a function").throw };
-		selectorFunc = { |receiver, messageArgs|
+		selectorFunc = { |receiver, messageArgs, kwargs|
 			messageArgs = messageArgs.collect(_.unlift); // YES?
-			receiver.performList(selector, messageArgs)
+			receiver.performArgs(selector, messageArgs, kwargs)
 		}; // for result call function with receiver
 
-		^receiverFunction.value(this.pr_receiver, selectorFunc, args, selector)
+		^receiverFunction.value(this.pr_receiver, selectorFunc, args, kwargs)
 	}
 
 	performBinaryOpOnSomething { | selector, thing, adverb |
@@ -214,9 +214,9 @@ Same like Lift1, but return a new instance of Lift always, with the same functio
 
 Lift : Lift1 {
 
-	doesNotUnderstand { | selector ... args |
+	doesNotUnderstand { | selector ... args, kwargs |
 		var func = this.pr_function;
-		var value = this.superPerformList(\doesNotUnderstand, selector, args);
+		var value = this.superPerformList(\doesNotUnderstand, selector, args, kwargs);
 		^this.class.new(value, func)
 	}
 }
@@ -231,12 +231,12 @@ also call the selector on any object above the given level
 Each : AbstractDelegator {
 	var <>pr_level = 1;
 
-	doesNotUnderstand { | selector ... args |
+	doesNotUnderstand { | selector ... args, kwargs |
 		var f, result;
 		f = { |level, val|
 			if(level < 1 or: { val.isCollection.not }) { // isCollection is debatable.
 				//[\call, val, \level, level].postln;
-				val.performList(selector, args)
+				val.performArgs(selector, args, kwargs)
 			} {
 				//[\collect, val, \level, level].postln;
 				val.collect { |x|
@@ -264,7 +264,7 @@ sometimes we just want to use Nil as a soft sign of failure and pass it on
 MaybeNil : Lift {
 
 	*new { |receiver|
-		^super.new(receiver, { |x, func, args| if(x.notNil) { func.(x, args) } })
+		^super.new(receiver, { |x, func, args, kwargs| if(x.notNil) { func.(x, args, kwargs) } })
 	}
 
 }
@@ -278,8 +278,8 @@ We may want to keep a handle on an internal object of some object
 Peek : Lift1 {
 
 	*new { |receiver, instVarName|
-		^super.new(receiver, {  |receiver, func, args|
-			func.value(receiver.instVarAt(instVarName), args)
+		^super.new(receiver, {  |receiver, func, args, kwargs|
+			func.value(receiver.instVarAt(instVarName), args, kwargs)
 		})
 	}
 
@@ -308,8 +308,8 @@ Fexpr : AbstractDelegator {
 		^this.pr_receiver.call(caller)
 	}
 
-	doesNotUnderstand { |selector ... args|
-		^this.class.opClass.new(this, selector, args)
+	doesNotUnderstand { |selector ... args, kwargs|
+		^this.class.opClass.new(this, selector, args, kwargs)
 	}
 
 	performBinaryOpOnSomething { |selector, obj, adverb|
@@ -326,10 +326,10 @@ Fexpr : AbstractDelegator {
 
 
 OpFexpr : Fexpr {
-	var <pr_selector, <pr_arguments;
+	var <pr_selector, <pr_arguments, <pr_kwArguments;
 
-	*new { |receiver, selector, args|
-		^super.newCopyArgs(receiver, selector, args)
+	*new { |receiver, selector, args, kwargs|
+		^super.newCopyArgs(receiver, selector, args, kwargs)
 	}
 
 	call {
@@ -342,7 +342,8 @@ OpFexpr : Fexpr {
 
 		var value = this.pr_receiver.call(this);
 		var arguments = this.pr_arguments.collect(_.call(this));
-		^value.performList(this.pr_selector, arguments)
+		var kwargs = this.pr_kwArguments.asDict.collect(_.call(this)).asPairs; // for now, not super efficient
+		^value.performArgs(this.pr_selector, arguments, kwargs)
 	}
 
 	== { |obj|
@@ -379,13 +380,13 @@ It can't guarantee this to be correct when building larger calculations, because
 
 StaticFexpr : Fexpr {
 
-	doesNotUnderstand { |selector ... args|
+	doesNotUnderstand { |selector ... args, kwargs|
 		var receiver = this.pr_receiver;
 		^if(receiver.respondsTo(selector)) {
-			this.class.opClass.new(receiver, selector, args)
+			this.class.opClass.new(receiver, selector, args, kwargs)
 		} {
 			"Error in %".format(this).error;
-			DoesNotUnderstandError(receiver, selector, args).throw
+			DoesNotUnderstandError(receiver, selector, args, kwargs).throw
 		}
 	}
 
@@ -408,8 +409,8 @@ Fexpr2 : Fexpr {
 
 	*opClass { ^OpFexpr2 }
 
-	value { |...args|
-		^this.call.valueArray(args)
+	value { |...args, kwargs|
+		^this.call.performArgs(\value, args, kwargs)
 	}
 
 	valueArray { |args|
@@ -436,8 +437,8 @@ Fexpr2 : Fexpr {
 
 OpFexpr2 : OpFexpr {
 
-	value { |...args|
-		^this.call.valueArray(args)
+	value { |...args, kwargs|
+		^this.call.performArgs(\value, args, kwargs)
 	}
 
 }
@@ -456,8 +457,8 @@ Idem : Fexpr {
 		^super.newCopyArgs(receiver.call)
 	}
 
-	doesNotUnderstand { |selector ... args|
-		^this.class.new(this.pr_receiver.performList(selector, args))
+	doesNotUnderstand { |selector ... args, kwargs|
+		^this.class.new(this.pr_receiver.performArgs(selector, args, kwargs))
 	}
 
 	performBinaryOpOnSomething { |selector, obj, adverb|
@@ -518,19 +519,21 @@ Dependants : AbstractDelegator {
 	// doesn't have to know what the dependant is interested in.
 	// so there is no need for a "changed" message.
 
-	doesNotUnderstand { | selector ... args |
-		var res = this.pr_receiver.performList(selector, args);
+	doesNotUnderstand { | selector ... args, kwargs |
+		var res = this.pr_receiver.performArgs(selector, args, kwargs);
 		// if you don't want the default "changed" behaviour, you can use
 		// an ExtendibleObject as a wrapper for the object that receives the changes
-		this.pr_dependants.do { |each| each.update(this, selector, args) };
+		this.pr_dependants.do { |each|
+			each.performArgs(\update, [this, selector] ++ args, kwargs)
+		};
 		^res
 	}
 
 	// this protects the update from infinite recursions
 
-	update { |theChanger, what ... args|
+	update { |theChanger, what ... args, kwargs|
 		if(theChanger != this) {
-			this.pr_receiver.update(theChanger, what, *args)
+			this.pr_receiver.performArgs(\update, [theChanger, what] ++ args, kwargs)
 		}
 	}
 

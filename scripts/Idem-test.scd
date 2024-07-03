@@ -36,6 +36,7 @@ a.neg.neg == a
 
 a = Idem(8);
 b = a.blend(0.4, 0.2);
+b = a.blend(0.4, blendFrac:0.2);
 b.call
 
 

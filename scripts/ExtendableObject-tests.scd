@@ -25,6 +25,9 @@ a.zeta // 8
 
 a.zeta(10); // 80
 
+// keyword args
+a.zeta(y: 10); // 80
+
 a.zeta(b) // 56
 
 a.asCompileString.interpret == a // true
@@ -46,12 +49,14 @@ a.addMethod('+', nil); // remove
 
 a + 6 == 14 // yes
 
+a.addMethod(\manyArgs, { |self, there, are, many, of, them|  [there, are, many, of, them] });
 
+a.manyArgs(there: 8, are: 3, many: 0, of: 100, them:pi)
 
 
 
 a = ExtendableObject({ |freq| Blip.ar(freq) * 0.2 });
-a.play = { |self, name ... args| Ndef(name, self.object).set(*args).play };
+a.play = { |self, name ... args| "playing".postln; Ndef(name, self.object).set(*args).play };
 a.stop = { |self, name| Ndef(name).end };
 
 

@@ -39,6 +39,8 @@ a.allowSelector('at');
 
 a.add(6).add(3);
 a.add(1.2); // no!
+a.add(item:8);
+a.add(item:8.2); // no!
 
 
 // note that this leaks access:

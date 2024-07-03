@@ -11,11 +11,14 @@ This could also be implemented as a Lift. So we see perhaps some convergence aro
 Polite : AbstractDelegator {
 
 
-	doesNotUnderstand { |selector ... args|
+	doesNotUnderstand { |selector ... args, kwargs|
 		args = args.collect { |each|
-			each.politeCall(this, selector, args)
+			each.politeCall(this, selector, args, kwargs)
 		};
-		^this.pr_receiver.performList(selector, args)
+		kwargs = kwargs.asDict.collect { |each|
+			each.politeCall(this, selector, args, kwargs)
+		};
+		^this.pr_receiver.performArgs(selector, args, kwargs)
 	}
 
 }

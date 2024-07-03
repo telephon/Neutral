@@ -71,6 +71,7 @@ The methods that will probably need to stay in `AbstractObjects` for it to work 
 			\performMsg,
 			\perform,
 			\performList,
+			\performArgs,
 			\functionPerformList,
 			\superPerform,
 			\superPerformList,

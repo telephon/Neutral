@@ -16,14 +16,17 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 ~obj1 = ExtendableObject();
 ~obj2 = ExtendableObject();
 
-~obj1.update = { |...args| "1 - I've just received an update!".postln; args.postln };
-~obj2.update = { |...args| "2 - I've just received an update!".postln; args.postln };
+~obj1.update = { |self ...args| "1 - I've just received an update!".postln; args.postln };
+~obj2.update = { |self ...args| "2 - I've just received an update!".postln; args.postln };
+
 
 
 ~controller.addDependant(~obj1);
 ~controller.addDependant(~obj2);
-~controller.addDependant(~controller); // recursion test
 
+~controller.put(\freq, 900);
+
+~controller.addDependant(~controller); // recursion test
 ~controller.put(\freq, 900);
 
 
@@ -33,7 +36,7 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 ~controller.addDependant(~obj2);
 
 ~controller.set(\freq, 34);
-~controller.set(\freq, 600);
+~controller.set(\freq, 6);
 
 
 

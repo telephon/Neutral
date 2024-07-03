@@ -72,6 +72,7 @@ NeutralizeObject {
 			\performMsg,
 			\perform,
 			\performList,
+			\performArgs,
 			\functionPerformList,
 			\superPerform,
 			\superPerformList,
@@ -197,7 +198,7 @@ NeutralizeObject {
 
 					stream << "\n\t\t^this.doesNotUnderstand(thisMethod.name)"
 				};
-				stream << "\n\t}\n\n";
+				stream << "\t}\n\n";
 				overriddenMethodSelectors = overriddenMethodSelectors.add(selector);
 			}
 		};
@@ -213,9 +214,9 @@ NeutralizeObject {
 			if(exclude.includes(selector).not) {
 				stream << Char.tab;
 				stream << selector;
-				stream << " { |... args|";
-				stream << "\n\t\t^this.doesNotUnderstand(thisMethod.name, *args)\n";
-				stream << "\n\t}\n\n";
+				stream << " { |... args, kwargs|";
+				stream << "\n\t\t^this.performArgs(\\doesNotUnderstand, [thisMethod.name] ++ args, kwargs)\n";
+				stream << "\t}\n\n";
 				overriddenMethodSelectors = overriddenMethodSelectors.add(selector);
 			}
 		};

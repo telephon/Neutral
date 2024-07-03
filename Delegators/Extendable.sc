@@ -36,14 +36,14 @@ Extendable : AbstractObject {
 		this.pr_method_dict[selector] = function;
 	}
 
-	doesNotUnderstand { | selector ... args |
+	doesNotUnderstand { | selector ... args, kwargs |
 		var func;
 		This.callContext = this; // allow direct access to "this"
 		if(pr_method_dict[\doesNotUnderstand].notNil) {
-			^pr_method_dict[\doesNotUnderstand].functionPerformList(\value, this, selector, *args)
+			^pr_method_dict[\doesNotUnderstand].performArgs(\functionPerformList, [\value, this] ++ args, kwargs)
 		};
 		if(pr_behavior.notNil and: { pr_behavior.respondsTo(selector) }) {
-			^pr_behavior.performList(selector, args)
+			^pr_behavior.performArgs(selector, args, kwargs)
 		};
 		func = this.pr_method_dict[selector];
 		if (func.notNil) {
@@ -51,13 +51,13 @@ Extendable : AbstractObject {
 			// and use the This instead. Need to check what looks better.
 			// even better in a future implementation would be that we can call "this"
 			// from normal functions and receive the extendable object
-			^func.functionPerformList(\value, this, args)
+			^func.performArgs(\functionPerformList, [\value, this] ++ args, kwargs)
 		};
 		if (selector.isSetter) {
 			^this.addMethod(selector, args[0])
 		};
 		This.callContext = nil;
-		^this.pr_forwardToReceiver(selector, args)
+		^this.pr_forwardToReceiver(selector, args, kwargs)
 	}
 
 	performBinaryOpOnSomething { | selector, thing, adverb |
@@ -82,7 +82,7 @@ Extendable : AbstractObject {
 		}
 	}
 
-	pr_forwardToReceiver { |selector, args|
+	pr_forwardToReceiver { |selector, args| // kwargs not yet implemented
 		^this.superPerformList(\doesNotUnderstand, selector, args)
 	}
 
@@ -132,20 +132,21 @@ ExtendableObject : Extendable {
 		^super.new(dict).object_(object)
 	}
 
-	reverseDoesNotUnderstand { | selector, what ... args |
+	reverseDoesNotUnderstand { | selector, what ... args, kwargs |
 		var func = this.pr_method_dict[selector];
 		if (func.notNil) {
-			^func.functionPerformList(\value, this, [what] ++ this.object ++ args)
+			//[\functionPerformList, [\value, this, what] ++ this.object ++ args, kwargs].postln;
+			^func.performArgs(\functionPerformList, [\value, this, what] ++ this.object ++ args, kwargs)
 		};
-		^what.performList(selector, [this.object] ++ args)
+		^what.performArgs(selector, [this.object] ++ args, kwargs)
 	}
 
 	performBinaryOpOnSomething { |selector, what, adverb|
 		^this.reverseDoesNotUnderstand(selector, what, adverb)
 	}
 
-	pr_forwardToReceiver { |selector, args|
-		^this.object.performList(selector, args)
+	pr_forwardToReceiver { |selector, args, kwargs|
+		^this.object.performArgs(selector, args, kwargs)
 	}
 
 	performWithEnvir { |selector, envir|
@@ -244,8 +245,8 @@ Halo2 : AbstractObject {
 
 	clearHalo { dict.init }
 
-	doesNotUnderstand { | selector ... args |
-		^object.performList(selector, args)
+	doesNotUnderstand { | selector ... args, kwargs |
+		^object.performArgs(selector, args, kwargs)
 	}
 
 	performBinaryOpOnSomething { |selector, receiver, adverb|
@@ -281,9 +282,9 @@ Isolator : AbstractObject {
 		pr_selectorConditions.removeAt(selector)
 	}
 
-	doesNotUnderstand { | selector ... args |
-		this.pr_check_access(selector, args);
-		^object.performList(selector, args)
+	doesNotUnderstand { | selector ... args, kwargs |
+		this.pr_check_access(selector, args, kwargs);
+		^object.performArgs(selector, args, kwargs)
 	}
 
 	performBinaryOpOnSomething { |selector, receiver, adverb|
@@ -291,9 +292,9 @@ Isolator : AbstractObject {
 		^receiver.performList(selector, object, adverb);
 	}
 
-	pr_check_access { |selector, arglist|
+	pr_check_access { |selector, arglist, kwargs|
 		var condition = pr_selectorConditions.at(selector);
-		var allow = condition.value(object, *arglist);
+		var allow = condition.performArgs(\value, [object] ++ arglist, kwargs);
 		if(allow !== true) {
 			Error("Object (%) is isolated, so the message '%', could not be called.".format(object, selector)).throw
 		}

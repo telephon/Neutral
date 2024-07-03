@@ -19,7 +19,7 @@ a.pr_arguments // 3, function
 a.pr_receiver // new receiver, [ 10, 11, 12 ]
 
 a = a + 7
-
+a = a.put(index:0, item: 27);
 
 b = CallTree(Array);
 
