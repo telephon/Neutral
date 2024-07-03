@@ -8,34 +8,14 @@ optional extensions to make the use of Lift more convenient
 + Collection {
 
 	lift1 {
-		^Lift1(this, _.collect(_))
+		^Lift1(this, { |receiver, func, args| receiver.collect { |x| func.(x, args) } })
 	}
 
 	lift {
-		^Lift(this, _.collect(_))
+		^Lift(this, { |receiver, func, args| receiver.collect { |x| func.(x, args) } })
 	}
 
 }
-
-
-
-+ Function {
-
-	lift1 {
-		^Lift1(this, { |receiver, func|
-			{ |...args| func.value(receiver.valueArray(args)) }
-		})
-	}
-
-	lift {
-		^Lift(this, { |receiver, func|
-			{ |...args| func.value(receiver.valueArray(args)) }
-		})
-	}
-}
-
-
-
 
 + Object {
 
@@ -46,9 +26,9 @@ optional extensions to make the use of Lift more convenient
 
 	/*
 
-this extension is debatable, because unlift can't be lifted itself. But I think this is ok.
+	this extension is debatable, because unlift can't be lifted itself. But I think this is ok.
 
-*/
+	*/
 
 	unlift {
 		^this

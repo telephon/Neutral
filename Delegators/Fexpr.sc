@@ -4,18 +4,18 @@
 /*
 "Auch ein Mann ohne Eigenschaften hat einen Vater mit Eigenschaften" (Musil)
 
-      ***
+***
 
 This combines some ideas by Alan Kay (objects as generic interpreters), James McCartney (abstract functions) and John N. Shutt (vau calculus).
 
 In Smalltalk-like OOP, expressions primarily evaluate to their respective objects only. From that level on, proper evaluation and application is the responsibilty of each object that receives a message. This library experiments with receivers that build calculation structures rather than performing them.
 
-      ***
+***
 
 The "private public" methods start with "pr_" to avoid accidental use.
 
 
-      ***
+***
 
 Note that for clarity, this class hierarchy spreads out a number of feature that could be combined.
 
@@ -148,9 +148,9 @@ Provide a function that is called for each message receipt.
 
 1. The first argument passed to the function is the receiver (the object wrapped)
 2. The second argument (handler) is a function that when called performs the selector.
-   This handler function is called with the receiver as first argument, and a function as a second.
-   In order to define what actually should happen, you should call this function on the result of your calculation
-   e.g. for wrapping a list in a collect: Lift([1, 2, 3], { |recv, func| recv.collect({ |each| func.value(each) }) })
+This handler function is called with the receiver as first argument, and a function as a second.
+In order to define what actually should happen, you should call this function on the result of your calculation
+e.g. for wrapping a list in a collect: Lift([1, 2, 3], { |recv, func| recv.collect({ |each| func.value(each) }) })
 
 To get back the wrapped object, use "unlift". See "lift" extensions for different classes.
 
@@ -177,32 +177,17 @@ Lift1 : AbstractDelegator {
 	// examples (see Lift-test)
 
 	doesNotUnderstand { | selector ... args |
-		var nargs, messageArgs, functionArgs, defaultArgs, func;
+		var nargs, functionArgs, selectorFunc;
 
 		var receiverFunction = this.pr_function;
 
 		if(receiverFunction.isNil) { Error("no lift without a function").throw };
+		selectorFunc = { |receiver, messageArgs|
+			messageArgs = messageArgs.collect(_.unlift); // YES?
+			receiver.performList(selector, messageArgs)
+		}; // for result call function with receiver
 
-		// actually, this line below is maybe not such a good idea.
-		// it breaks some examples.
-		// need to check for the position of the selector argument in the function
-		// oblige to use "selector" as a name
-		// and count what comes before?
-		// all this needs to be done when the lift is created.
-
-		nargs = max(0, receiverFunction.def.argNames.size - 2);
-		messageArgs = args.drop(nargs);
-		functionArgs = args.keep(nargs).extend(nargs, nil);
-		defaultArgs = receiverFunction.def.prototypeFrame;
-		func = { |x| x.performList(selector, messageArgs) }; // for result call function with receiver
-
-		// add defaults and compose arguments
-		// the function is called with these arguments:
-		// receiver, arg1, ..., func, selector, messageArgs
-		functionArgs = functionArgs.collect { |x, i| x ?? { defaultArgs.at(i + 1) } }; // first is receiver
-		functionArgs = [this.pr_receiver] ++ functionArgs ++ [func, selector] ++ messageArgs;
-
-		^receiverFunction.valueArray(functionArgs)
+		^receiverFunction.value(this.pr_receiver, selectorFunc, args, selector)
 	}
 
 	performBinaryOpOnSomething { | selector, thing, adverb |
@@ -279,7 +264,7 @@ sometimes we just want to use Nil as a soft sign of failure and pass it on
 MaybeNil : Lift {
 
 	*new { |receiver|
-		^super.new(receiver, { |x, func| if(x.notNil) { func.(x) } })
+		^super.new(receiver, { |x, func, args| if(x.notNil) { func.(x, args) } })
 	}
 
 }
@@ -293,8 +278,8 @@ We may want to keep a handle on an internal object of some object
 Peek : Lift1 {
 
 	*new { |receiver, instVarName|
-		^super.new(receiver, {  |receiver, func|
-			func.value(receiver.instVarAt(instVarName))
+		^super.new(receiver, {  |receiver, func, args|
+			func.value(receiver.instVarAt(instVarName), args)
 		})
 	}
 
