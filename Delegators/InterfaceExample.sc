@@ -3,6 +3,8 @@
 
 instead of overwriting methods of common classes with class extensions (something that is always a little risky), we can just make a warpper.
 
+THESE ARE STILL WRONG
+
 */
 
 // leaving out adverbs for now
