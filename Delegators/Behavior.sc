@@ -28,8 +28,8 @@ AbstractBehavior {
 
 FunctionBehavior : AbstractBehavior {
 
-	value { |...args|
-		^pr_abstractObject.object.value(*args)
+	value { |...args, kwargs|
+		^pr_abstractObject.object.performArgs(\value, args, kwargs)
 	}
 
 }
