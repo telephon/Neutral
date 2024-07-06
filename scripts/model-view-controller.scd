@@ -24,20 +24,24 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 )
 
 
-
 ~controller.put(\freq, 900);
+~controller.put(key:\freq, value: 100); // kwargs
+
 
 ~controller.addDependant(~controller); // recursion test
 ~controller.put(\freq, 900);
 
 
-
+// sound example
+(
 ~controller = Dependants({ |freq=70| Blip.ar(freq, 16) + Pulse.ar(freq)  * 0.1 }.play);
 ~controller.addDependant(~obj1);
 ~controller.addDependant(~obj2);
+)
 
 ~controller.set(\freq, 34);
 ~controller.set(\freq, 6);
+~controller.put(key:\freq, value: 100); // kwargs
 
 // because function implements update, we can simply use a function:
 
@@ -50,6 +54,8 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 )
 
 ~controller.put(\freq, 900);
+~controller.put(key:\freq, value: 100); // kwargs are not yet passed on (update needs to receive kwargs in the class library)
+
 
 
 // change only when the object is not equal to its past

@@ -523,7 +523,7 @@ Dependants : AbstractDelegator {
 		// if you don't want the default "changed" behaviour, you can use
 		// an ExtendibleObject as a wrapper for the object that receives the changes
 		this.pr_dependants.do { |each|
-			each.performArgs(\update, [this, selector] ++ args, kwargs)
+			each.update(this, selector, *args) // FOR NOW, DON'T PASS KWARGS (update interface must be adjusted first)
 		};
 		^res
 	}
