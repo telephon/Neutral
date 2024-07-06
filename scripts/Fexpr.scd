@@ -26,7 +26,9 @@ c.call // compute the structure
 
 c.call == b.call;
 
-
+// kwargs
+b = a.cylBesselIPrime(x: 3)
+b.call
 
 
 // equality
@@ -62,7 +64,7 @@ b = a.pingolino
 a.call
 b.call // error.
 
-a = Fexpr(_ + 2) + 3;
+a = Fexpr({ |x| x + 2 }) + 3;
 a.value; // returns a new Fexpr, so this is not what we wanted
 a.call // BinaryOpFunction
 a.call.value(0) // 5
@@ -81,12 +83,12 @@ Fexpr2 will evaluate on call
 */
 
 
-a = Fexpr2(_ + 2) + 3;
+a = Fexpr2({ |x| x + 2 }) + 3;
 a.value(0); // 5
 
 
 // but for math, you can do the same for functions directly
-a = (_ + 2) + 3;
+a = { |x| x + 2 } + 3;
 a.value(0) // 5
 
 a = Fexpr2({ |x| x + 1 });
@@ -102,7 +104,8 @@ a.series(3, 20).call
 
 /*
 
-StaticFexpr
+StaticFexpr: checks if constructions work in principle
+(there is no guarantee, because calls are made on functions dynamically)
 
 */
 

@@ -184,7 +184,7 @@ Lift1 : AbstractDelegator {
 		selectorFunc = { |receiver, messageSelector, messageArgs, messageKwargs|
 			 // we unlift like in a functor
 			messageArgs = (messageArgs ? args).collect(_.unlift);
-			messageKwargs = (messageKwargs ? kwargs).asDict.collect(_.unlift).asPairs;
+			messageKwargs = (messageKwargs ? kwargs).asArray.asDict.collect(_.unlift).asPairs;
 			receiver.performArgs(messageSelector ? selector, messageArgs, messageKwargs)
 		}; // for result call function with receiver
 
@@ -310,10 +310,11 @@ Fexpr : AbstractDelegator {
 	}
 
 	doesNotUnderstand { |selector ... args, kwargs|
+		[selector, args, kwargs].postln;
 		^this.class.opClass.new(this, selector, args, kwargs)
 	}
 
-	performBinaryOpOnSomething { |selector, obj, adverb|
+	performBinaryOpOnSomething { |selector, obj, adverb| // KWARGS????
 		^this.class.opClass.new(obj, selector, [this] ++ adverb)
 	}
 
@@ -343,26 +344,26 @@ OpFexpr : Fexpr {
 
 		var value = this.pr_receiver.call(this);
 		var arguments = this.pr_arguments.collect(_.call(this));
-		var kwargs = this.pr_kwArguments.asDict.collect(_.call(this)).asPairs; // for now, not super efficient
+		var kwargs = this.pr_kwArguments.asArray.asDict.collect(_.call(this)).asPairs; // for now, not super efficient
 		^value.performArgs(this.pr_selector, arguments, kwargs)
 	}
 
 	== { |obj|
-		^this.compareObject(obj, [\pr_receiver, \pr_selector, \pr_arguments])
+		^this.compareObject(obj, [\pr_receiver, \pr_selector, \pr_arguments, \pr_kwArguments])
 	}
 
 	hash {
-		^this.instVarHash([\pr_receiver, \pr_selector, \pr_arguments])
+		^this.instVarHash([\pr_receiver, \pr_selector, \pr_arguments, \pr_kwArguments])
 	}
 
 	storeOn { |stream|
 		stream << this.class.name;
-		stream << "(" <<<* [this.pr_receiver, this.pr_selector, pr_arguments] << ")"
+		stream << "(" <<<* [this.pr_receiver, this.pr_selector, pr_arguments, pr_kwArguments] << ")"
 	}
 
 	printOn { |stream|
 		stream << this.class.name;
-		stream << "(" <<* [this.pr_receiver, this.pr_selector, pr_arguments] << ")"
+		stream << "(" <<* [this.pr_receiver, this.pr_selector, pr_arguments, pr_kwArguments] << ")"
 	}
 
 
@@ -494,9 +495,6 @@ Immute : Idem {
 
 this registers any change.
 
-Alternatively, we could forward only selected changes: then it would be better to derive
-from ExtendibleObject and override only specific methods which we want to cause an update.
-
 */
 
 
@@ -536,6 +534,25 @@ Dependants : AbstractDelegator {
 		if(theChanger != this) {
 			this.pr_receiver.performArgs(\update, [theChanger, what] ++ args, kwargs)
 		}
+	}
+
+
+}
+
+
+DependantsOnEquality : Dependants {
+
+	doesNotUnderstand { | selector ... args, kwargs |
+		var old = this.pr_receiver.deepCopy;
+		var res = this.pr_receiver.performArgs(selector, args, kwargs);
+
+		// if nothing has changed, don't update
+		if(old == res) { ^res };
+
+		this.pr_dependants.do { |each|
+			each.performArgs(\update, [this, selector] ++ args, kwargs)
+		};
+		^res
 	}
 
 
@@ -586,5 +603,10 @@ b = [1, 2, 3].collect(a);
 and b being a Fexpr. But this is currently not solvable easily.
 The problem is related to the partial application syntax.
 
+We can write, however:
+
+a = Fexpr({ |x| x + 2 });
+b = Fexpr([1, 2, 3]).collect(a);
+b.call
 
 */
