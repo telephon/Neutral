@@ -10,9 +10,9 @@ It has one function that will be called on every method call
 // a simple post function: post every transition
 
 (
-var f = { |obj, func, args|
-	"receiver: % args: %".format(obj, args).postln;
-	func.(obj, args) // noop
+var f = { |obj, func, selector, args, kwargs|
+	"called % on % with args: % and kwargs: %".format(selector, obj, args, kwargs).postln;
+	func.(obj) // noop
 };
 
 a = Lift(1, f);
@@ -20,6 +20,27 @@ b = Lift(5, f);
 
 )
 
+a.max(2)
+a.neg
+a.neg.neg
+gcd(asInteger(a + 9 / 2, 18), 15)
+a + b / b
+
+
+// shift everything into the world of Points
+
+(
+var f = { |obj, func, selector, args, kwargs|
+	"called % on % with args: % and kwargs: %".format(selector, obj, args, kwargs).postln;
+	func.(obj.asArray).asPoint
+};
+
+a = Lift(Point(1, 5), f);
+b = Lift(Point(5, 2), f);
+
+)
+
+a.max(2)
 a.neg
 a.neg.neg
 gcd(asInteger(a + 9 / 2, 18), 15)
@@ -28,7 +49,7 @@ a + b / b
 
 // testing some binops
 b = a + 100 * 100;
-c = b + [1, 2, 3];
+c = b + [[1, 2, 3]];
 
 c +.x [1, 2];
 
@@ -41,10 +62,10 @@ c +.x [1, 2, 3];
 
 /// maybe nil
 
-a = Lift(8, { |x, f, args| if(x.notNil) { f.(x, args) } });
+a = Lift(8, { |x, f| if(x.notNil) { f.(x) } });
 a + 9
 9 + a
-a = Lift(nil, { |x, f, args| if(x.notNil) { f.(x, args) } });
+a = Lift(nil, { |x, f| if(x.notNil) { f.(x) } });
 a + 9
 9 + a
 
@@ -65,20 +86,15 @@ a + 4 + 10
 
 (
 g = { |seq, clumpSize|
-	Lift1(seq, { |receiver, func, args| // func calls the selector on the first argument
-		"receiver: % n: % args:%".format(receiver, n, args).postln;
-		receiver.clump(clumpSize).collect({ |x| func.(x, args) }).flatten(1)
+	Lift1(seq, { |receiver, func| // func calls the selector on the first argument
+		receiver.clump(clumpSize).collect({ |x| func.(x) }).flatten(1)
 	})
 };
 )
 
-a = g.(Pseries.new, clumpSize: 4);
+a = g.(Pseries.new, clumpSize: 2);
 a.mirror.asStream.nextN(16)
-
-// the n of clump(n) is the first argument
-a.mirror(4).asStream.nextN(16)
-a.mirror(2).asStream.nextN(16)
-a.pyramid(3).asStream.nextN(16)
+a.pyramid(patternType:3).asStream.nextN(16)
 
 
 
@@ -92,7 +108,7 @@ a.pyramid(3).asStream.nextN(16)
 // e.g. for a.neg it would be { |x| x.neg }
 // for a + b it would be { |x, y| x + y }
 
-a = Lift([1, 2, 3], { |receiver, func, args| receiver.collect { |x| func.(x, args) } });
+a = Lift([1, 2, 3], { |receiver, func| receiver.collect { |x| func.(x) } });
 a + 9; // ok, this we can also do normally
 
  // but this is different
@@ -106,9 +122,10 @@ a.series(5, 20);
 a.asArray
 
 
-(
+
 // lift calls to several related arrays treating them as one
-f = { |receiver, func, args| receiver.copy.collect({ |x| func.(x, args) }) };
+(
+f = { |receiver, func| receiver.copy.collect({ |x| func.(x) }) };
 a = Lift([
 	[3, 4, 5, 6],
 	[400, 800, 1200, 810],
@@ -125,7 +142,7 @@ a
 
 // lift calls to a dictionary
 
-f = { |receiver, func, args| receiver.copy.collect { |x| func.(x, args) } };
+f = { |receiver, func| receiver.copy.collect { |x| func.(x) } };
 a = Lift((tables: 7, chairs: 8), f);
 a + 10 * 10 // many chairs, many tables.
 
@@ -136,7 +153,7 @@ d = (
 	second: Prout { loop { "second".postln; 0.3.yield } }.asStream,
 	third: Prout { loop { "second".postln; 2.yield } }.asStream
 );
-f = { |receiver, func, args| receiver.collect { |x| func.(x, args) } };
+f = { |receiver, func| receiver.collect { |x| func.(x) } };
 a = Lift(d, f);
 )
 
@@ -149,11 +166,11 @@ a.stop;
 
 // the selector and args are also passed to the function
 (
-f = { |receiver, func, args, selector|
+f = { |receiver, func, selector, args, kwargs|
 	if(#['*', '+'].includes(selector)) {
-		receiver.copy.collect { |x| func.(x, args) }
+		receiver.copy.collect { |x| func.(x) }
 	} {
-		receiver.performList(selector, args)
+		receiver.performArgs(selector, args, kwargs)
 	}
 };
 )
@@ -165,11 +182,7 @@ a.put(\spoons, 2);
 a.at(\tables) // at is forwarded.
 a.parent = (footmats: 9);
 a.parent // Lift(( 'footmats': 9 ))
-
-// arguably, in those cases we don't really want a new Lift(7)
-// also the function above is complicated.
-// it replicates some of ExtendibleObject's behaviour, too.
-
+a.at(key:\spoons); // kwargs test
 
 
 // for handling synths
@@ -178,7 +191,7 @@ a = Lift([
 	{ |x=1| Blip.ar([5, 6] * x, 1000) * 0.4 },
 	{ |x=1| BPF.ar(PinkNoise.ar(10 ! 2), 700 * x, 0.1) * 0.3 },
 	{ |x=1| SinOsc.ar(XLine.kr(8000, 200, 60) * [1, 1.23] * x) * 0.1 }
-], { |receiver, func, args| receiver.collect { |x| func.(x, args) } });
+], { |receiver, func| receiver.collect { |x| func.(x) } });
 )
 
 
@@ -215,7 +228,7 @@ c.release;
 (
 // a pattern that returns arrays
 p = Ptuple([Pseries(1, 3, inf), Pseries(3, -1, inf), Pseries(0, 0.1, inf)]);
-a = Lift1(p, { |receiver, func, args|  receiver.collect { |x| func.(x, args) } })
+a = Lift1(p, { |receiver, func|  receiver.collect { |x| func.(x) } })
 )
 
 b = a.normalizeSum.round;

@@ -8,11 +8,11 @@ optional extensions to make the use of Lift more convenient
 + Collection {
 
 	lift1 {
-		^Lift1(this, _.collect(_))
+		^Lift1(this, { |x, func| x.collect { |each| func.(each) } })
 	}
 
 	lift {
-		^Lift(this, _.collect(_))
+		^Lift(this, { |x, func| x.collect { |each| func.(each) } })
 	}
 
 }

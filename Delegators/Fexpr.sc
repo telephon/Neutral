@@ -144,10 +144,11 @@ AbstractDelegator : AbstractObject {
 
 /*
 
-Provide a function that is called for each message receipt.
+Provide a function that is called for each message receipt. This can work like a functor.
 
 1. The first argument passed to the function is the receiver (the object wrapped)
 2. The second argument (handler) is a function that when called performs the selector.
+
 This handler function is called with the receiver as first argument, and a function as a second.
 In order to define what actually should happen, you should call this function on the result of your calculation
 e.g. for wrapping a list in a collect: Lift([1, 2, 3], { |recv, func| recv.collect({ |each| func.value(each) }) })
@@ -174,20 +175,20 @@ Lift1 : AbstractDelegator {
 		^this.pr_receiver
 	}
 
-	// examples (see Lift-test)
-
 	doesNotUnderstand { | selector ... args, kwargs |
 		var nargs, functionArgs, selectorFunc;
 
 		var receiverFunction = this.pr_function;
 
 		if(receiverFunction.isNil) { Error("no lift without a function").throw };
-		selectorFunc = { |receiver, messageArgs, kwargs|
-			messageArgs = messageArgs.collect(_.unlift); // YES?
-			receiver.performArgs(selector, messageArgs, kwargs)
+		selectorFunc = { |receiver, messageSelector, messageArgs, messageKwargs|
+			 // we unlift like in a functor
+			messageArgs = (messageArgs ? args).collect(_.unlift);
+			messageKwargs = (messageKwargs ? kwargs).asDict.collect(_.unlift).asPairs;
+			receiver.performArgs(messageSelector ? selector, messageArgs, messageKwargs)
 		}; // for result call function with receiver
 
-		^receiverFunction.value(this.pr_receiver, selectorFunc, args, kwargs)
+		^receiverFunction.value(this.pr_receiver, selectorFunc, selector, args, kwargs)
 	}
 
 	performBinaryOpOnSomething { | selector, thing, adverb |
@@ -216,7 +217,7 @@ Lift : Lift1 {
 
 	doesNotUnderstand { | selector ... args, kwargs |
 		var func = this.pr_function;
-		var value = this.superPerformList(\doesNotUnderstand, selector, args, kwargs);
+		var value = this.performArgs(\superPerformList, [\doesNotUnderstand, selector, args], kwargs);
 		^this.class.new(value, func)
 	}
 }
@@ -264,7 +265,7 @@ sometimes we just want to use Nil as a soft sign of failure and pass it on
 MaybeNil : Lift {
 
 	*new { |receiver|
-		^super.new(receiver, { |x, func, args, kwargs| if(x.notNil) { func.(x, args, kwargs) } })
+		^super.new(receiver, { |x, func| if(x.notNil) { func.(x) } })
 	}
 
 }
