@@ -77,14 +77,18 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 
 
 // classical model GUI view controller example. For now, only display one parameter.
+// you can close any view without leaving a trace
+
 (
 ~dict = DependantsOnEquality((freq: 440));
-~view = ExtendableObject(EZSlider(label: "freq", bounds:300@40, controlSpec:\freq).alwaysOnTop_(true));
-~view.update = { |sender, receiver, selector, key, val|
-	if(selector == \put) { defer { receiver.value = val } }
+3.do { |i|
+	var view = EZSlider(label: "freq", bounds:Rect(300 * i, 200, 300, 40), controlSpec:\freq).alwaysOnTop_(true);
+	var obj = ExtendableObject(view);
+	obj.update = { |sender, receiver, selector, key, val|
+		if(selector == \put) { defer { sender.object.value = val } };
+	};
+	~dict.addDependant(obj);
 };
-~dict.addDependant(~view);
-
 // setting the value in the dictionary, the view updates
-fork { 10.do { 0.5.wait; ~controller.put(\freq, \freq.asSpec.map(1.0.rand)) } };
+fork { inf.do { 1.wait; ~dict.put(\freq, \freq.asSpec.map(1.0.rand)); } };
 )

@@ -263,8 +263,48 @@ a = Each([[10, [20, [100, 120]]], 1, 2]).lift(2);
 a + 5
 a + [0.1, 0.2, 0.3];
 
+////////////////////////////
+
+/*
+
+use it as a debugger
+
+*/
+
+(
+f = { |obj, func, selector, args, kwargs|
+	var res;
+	0.2.yield;
+	res = func.(obj);
+	"called '%' on %\nargs: %\nkwargs: %\nresult:%\n\n".format(selector, obj, args, kwargs, res).postln;
+	res
+};
+)
 
 
+
+(
+r = Routine {
+	(degree: Lift(5, f), harmonic: Lift(2, f)).play
+}
+)
+
+r.next
+r.next;
+
+r.play;
+
+
+
+// this one fails
+(
+r = Routine {
+	Array.fill(a, { 1.0.rand })
+}
+)
+
+r.next;
+r.next; // non Boolean in test...
 
 
 

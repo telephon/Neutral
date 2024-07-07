@@ -9,7 +9,7 @@ using `addMethod`
 
 // Extendable
 
-a = Extendable.new;
+a = Extendable(know: true);
 
 // responds to nothing
 // correctly throws "not understood" errors:
@@ -22,7 +22,7 @@ a.kuchen = { |self, x, y, z| [x, y, z].postln; 999 };
 
 a.kuchen(1, 2, 3) // 999
 
-// same as addMethod:
+// same as addMethod, use this for know == false
 a.addMethod(\kuchen, { |self, x, y, z| [x, y, z].postln; 999 });
 
 a.kuchen(1, 2, 3) // 999
@@ -44,6 +44,11 @@ a.dup(5)
 // performWithEnvir
 a.performWithEnvir(\nockerl, (x: 8, y: 9, z: -3)); // 20
 
+
+a = Extendable.new;
+a.addMethod(\kuchen, { |self, x, y, z| [x, y, z].postln.sum; });
+a.value = 8; // complains
+a.kuchen(2, 1, 4)
 
 /*
 
@@ -115,6 +120,43 @@ b = ExtendableObject(a,
 
 b.nudel((amp: 4.4));
 b.nudel((freq: 1000));
+
+
+
+
+// a few methods can't be overridden, because they are inlined by the compiler
+// if, ? and ??
+
+(
+a = Extendable.new;
+a.addMethod(\while, { |self, func1, func2|
+	var count = 0;
+	while({
+		count = count + 1;
+		count < 10 and: { func1.value }
+	}, func2)
+});
+a.addMethod(\loop, { |self, func| 10.do(func) });
+a.addMethod(\switch, { |self... args| 0.switch(*args) });
+a.addMethod(\if, { |self, trueFunc, falseFunc| "ok".postln; trueFunc.value });
+a.addMethod('??', { |self, func| "ok".postln; func.value});
+a.addMethod('?', { |self, func| "ok".postln; func.value });
+)
+
+// call them, works fine
+while(a, true, { "running".scramble.postln });
+loop(a, {  "running".scramble.postln });
+switch(a, 0, { "found myself" }, 3, { "found 3" }, "nothing");
+
+
+// as you noted, these don't work
+if(a, { "hello" }, { "world" }); // ERROR: Non Boolean in test.
+if(a, { var x = "hello"; x }, { "world" }); // avoind inlining by defining a variable in the function
+a ? 7  // a, which is wrong
+a ?? { 7 } // a, which is wrong
+a ?? { var x = 7; x } // 7
+
+
 
 
 

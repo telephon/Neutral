@@ -11,15 +11,15 @@ By default, all messages are forwarded to it.
 a = ExtendableObject(8);
 b = ExtendableObject(7);
 
+
+// commutativity
 a - 9 == -1;
 9 - a == 1;
 
 a - b == 1;
 b - a == -1;
 
-
-
-a.zeta = { |self, y = 1| "y: %".format(y).postln; self.object * y };
+a.addMethod(\zeta, { |self, y = 1| "y: %".format(y).postln; self.object * y });
 
 a.zeta // 8
 
@@ -43,11 +43,20 @@ a + 6 == pi // yes
 a.addMethod('+', { |self, y| self.object + y });
 
 a + 6
+6 + a
+
+a.addMethod('+', { |self, y| self.object ** y }); // reiterpret as exponential
+
+a + 2 // 64
+2 + a // 64 // this is strange, because exponentials are not commutative normally.
+
+// => DO WE WANT ANOTHER OPTION? check reverseDoesNotUnderstand
 
 
 a.addMethod('+', nil); // remove
 
 a + 6 == 14 // yes
+6 + a == 14
 
 a.addMethod(\manyArgs, { |self, there, are, many, of, them|  [there, are, many, of, them] });
 
@@ -55,7 +64,8 @@ a.manyArgs(there: 8, are: 3, many: 0, of: 100, them:pi)
 
 
 
-a = ExtendableObject({ |freq| Blip.ar(freq) * 0.2 });
+// know = true, so we can use the setter syntax
+a = ExtendableObject({ |freq| Blip.ar(freq) * 0.2 }, know: true);
 a.play = { |self, name ... args| "playing".postln; Ndef(name, self.object).set(*args).play };
 a.stop = { |self, name| Ndef(name).end };
 
@@ -64,6 +74,9 @@ a.play(\x, \freq, 20);
 a.stop(\x);
 
 
+// generic extendable, if you want all default object methods to hold:
+a = ExtendableObject(Object.new);
+a.value // that would be much better if we coul override "this", so it would return a and not its object.
 
 // performWithEnvir
 
@@ -192,6 +205,5 @@ Pdef(\x, Ptpar([0, p, 0.3, p, 0.5, p])).play;
 
 // restore default server
 Server.default = s = Server.default.object;
-
 
 

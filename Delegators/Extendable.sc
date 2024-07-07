@@ -15,10 +15,10 @@ This schema could be moved up to AbstractObject if it is systematic.
 
 
 Extendable : AbstractObject {
-	var <>pr_method_dict, <pr_behavior;
+	var <>pr_method_dict, <pr_behavior, know;
 
-	*new { |dict|
-		^super.newCopyArgs(dict ?? { IdentityDictionary.new })
+	*new { |dict, know = false|
+		^super.newCopyArgs(dict ?? { IdentityDictionary.new }, nil, know)
 	}
 
 	pr_behavior_ { |behavior|
@@ -46,14 +46,14 @@ Extendable : AbstractObject {
 			^pr_behavior.performArgs(selector, args, kwargs)
 		};
 		func = this.pr_method_dict[selector];
-		if (func.notNil) {
+		if(func.notNil) {
 			// it would be possible to omit the "this" argument
 			// and use the This instead. Need to check what looks better.
 			// even better in a future implementation would be that we can call "this"
 			// from normal functions and receive the extendable object
 			^func.performArgs(\functionPerformList, [\value, this] ++ args, kwargs)
 		};
-		if (selector.isSetter) {
+		if(know and: { selector.isSetter }) {
 			^this.addMethod(selector, args[0])
 		};
 		This.callContext = nil;
@@ -128,14 +128,13 @@ A delegator that allows to add and override methods to an object
 ExtendableObject : Extendable {
 	var <>object;
 
-	*new { |object, dict|
-		^super.new(dict).object_(object)
+	*new { |object, dict, know = false|
+		^super.new(dict, know).object_(object)
 	}
 
 	reverseDoesNotUnderstand { | selector, what ... args, kwargs |
 		var func = this.pr_method_dict[selector];
 		if (func.notNil) {
-			//[\functionPerformList, [\value, this, what] ++ this.object ++ args, kwargs].postln;
 			^func.performArgs(\functionPerformList, [\value, this, what] ++ this.object ++ args, kwargs)
 		};
 		^what.performArgs(selector, [this.object] ++ args, kwargs)
