@@ -37,8 +37,8 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 ~obj1 = ExtendableObject(); // the object is omitted here
 ~obj2 = ExtendableObject();
 
-~obj1.update = { |self ...args| "1 - I've just received an update!".postln; args.postln };
-~obj2.update = { |self ...args| "2 - I've just received an update!".postln; args.postln };
+~obj1.addMethod(\update, { |self ...args| "1 - I've just received an update!".postln; args.postln });
+~obj2.addMethod(\update, { |self ...args| "2 - I've just received an update!".postln; args.postln });
 
 ~controller.addDependant(~obj1);
 ~controller.addDependant(~obj2);
@@ -59,7 +59,6 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 
 ~controller.set(\freq, 34);
 ~controller.set(\freq, 6);
-~controller.put(key:\freq, value: 100); // kwargs
 
 
 
@@ -84,9 +83,9 @@ This allows us a better separation of concerns, because the receiver doesn't hav
 3.do { |i|
 	var view = EZSlider(label: "freq", bounds:Rect(300 * i, 200, 300, 40), controlSpec:\freq).alwaysOnTop_(true);
 	var obj = ExtendableObject(view);
-	obj.update = { |sender, receiver, selector, key, val|
+	obj.addMethod(\update, { |sender, receiver, selector, key, val|
 		if(selector == \put) { defer { sender.object.value = val } };
-	};
+	});
 	~dict.addDependant(obj);
 };
 // setting the value in the dictionary, the view updates
